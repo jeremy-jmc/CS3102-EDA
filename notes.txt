@@ -1,0 +1,28 @@
+BTree Cormen
+
+1. Every node x ...
+    x.n = # of keys currently stored in node x
+    x.k1 <= x.k2 <= x.k3 <= ... <= x.kn
+    x.leaf a boolean value that is true if x is a leaf and false otherwise
+2. Each internal node x
+    x.n+1 pointers (its children)
+        x.c1, x.c2, ..., x.cn, x.cn+1
+3. The keys x.k1 separate the ranges of keys stored in each subtree:
+
+    k1 <= x.k1 <= k2 <= x.k2 <= ... <= x.kn <= kn+1
+
+    where ki is any key stored in the subtree with root x.ci
+4. All leaves have the same depth
+5. Nodes have lower and upper bounds on the number of keys they can contain.
+    minimum degree of btree is t
+
+    - Every node except root must have at least t-1 keys
+        Every internal node other than the root must have at least t children
+    - Every node may contain at most 2t-1 keys
+        Every internal node may have at most 2t children
+
+Due to every internal node then has either 2, 3, or 4 children, we call a B-tree of order t a 2-3-4 tree.
+
+
+https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/btrees.pdf
+https://drive.google.com/drive/u/0/folders/1tg7vuo3gBVYEmVPP8T9eNiMvoVJt4l3n
