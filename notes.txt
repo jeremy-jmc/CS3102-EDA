@@ -1,4 +1,4 @@
-BTree Cormen
+BTree Cormen | Intro to Algorithms
 
 1. Every node x ...
     x.n = # of keys currently stored in node x
@@ -26,3 +26,4 @@ Due to every internal node then has either 2, 3, or 4 children, we call a B-tree
 
 https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/btrees.pdf
 https://drive.google.com/drive/u/0/folders/1tg7vuo3gBVYEmVPP8T9eNiMvoVJt4l3n
+Michael Sambol YT
