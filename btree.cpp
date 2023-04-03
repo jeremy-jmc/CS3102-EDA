@@ -500,14 +500,18 @@ void print(Node<T>* node_root)
 
 int main()
 {
+#ifndef TEST
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+#endif
     // cout << t << " " << N << endl;
-    int l=10, r=40;
+    int l=10, r=100;
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> dist(l, r);      // dist(gen);
     
     vector<int> numbers;
-    for (int i = l; i <= r; i+=2)
+    for (int i = l; i <= r; i+=4)
         numbers.push_back(i);
     // random_shuffle(numbers.begin(), numbers.end());
     
@@ -526,20 +530,20 @@ int main()
         // print(bt->root);
     }
     
-    // print(bt->root);
+    print(bt->root);
     
     // for (int n: numbers)
     //     bt->search(dist(gen));
     
     // random_shuffle(numbers.begin(), numbers.end());
-    vector<int> to_remove = {32, 36, 40, 10, 30, 20};
-    for (int n: to_remove)
-    {
-        cout << "\tremove(" << n << ")\n";
-        // print(bt->root);
-        bt->remove(n);
-    }
-    print(bt->root);
+    // vector<int> to_remove = {32, 36, 40, 10, 30, 20};
+    // for (int n: to_remove)
+    // {
+    //     cout << "\tremove(" << n << ")\n";
+    //     // print(bt->root);
+    //     bt->remove(n);
+    // }
+    // print(bt->root);
     return 0;
 }
 

@@ -1,0 +1,43 @@
+
+"b+tree de grado 1"
+
+k-dimensional space R^k
+supports general range queries of the form 
+    [xl^1, xr^1] x [xl^2, xr^2] x ... x [xl^k, xr^k]
+where
+    xl^i <= xr^i
+    xl^i, xr^i \in R
+cartesian product of k ranges is referred to as a kD range
+solves the range search problem
+    find all the points ins S that satisfy any range query
+
+augmented bst which easily generalize to higher dimensions
+
+CONSTRUCTION
+    root node v
+    set S of points in k-dimensional space R^k
+        S = {p_i = (x_i^1, x_i^2, ..., x_i^k) for i = 1, 2, ..., n}
+            p_i.x^j = x_i^j     j-th coordinate value of point p_i
+    v.key 
+        is to partition S into two approximately equal subsets S_l and S_r
+        respectively of the hyperplane H^k: x^k = v.key
+
+        v.key = median of the kth coordinate values of all the points in S
+
+    node v {
+        node left_subtree       S_l
+        node right_subtree      S_r
+
+        aux     augmented data structure (K-1)D Range Tree
+    }
+
+https://en.wikipedia.org/wiki/Range_tree
+https://user.ceng.metu.edu.tr/~ys/ceng213-ds/13_rangeq-sqrt.pdf
+https://cp-algorithms.com/data_structures/sqrt_decomposition.html#description
+https://ima.udg.edu/~sellares/ComGeo/RangeTrees4Ms.pdf
+https://www.niser.ac.in/~aritra/RangeTrees.pdf
+https://www.cs.umd.edu/class/fall2020/cmsc420-0201/Lects/lect17-range-tree.pdf
+
+https://www.geogebra.org/m/otC7BvrY
+https://www.geogebra.org/m/r6xksq3g
+https://en.wikipedia.org/wiki/Hyperplane

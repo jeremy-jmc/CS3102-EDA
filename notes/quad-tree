@@ -1,0 +1,38 @@
+
+hierarchical spatial tree data structure
+based on the principle of recursive decomposition of space
+    separators parallel to the coordinate axis
+resulting split of a region into four regions corresponding to the 
+    southwest, northwest, southeast, northeast
+
+in a three dimensional (octree)
+    a region is split into eight regions 
+        using planes parallel to coordinate planes
+    8-way split of the region associated with it
+
+Analogous DS for representing spatial data in higher than tree dimensions
+    are called hyperoctrees
+
+
+The tree structure allows quick focusing on regions of interest
+    which facilitates the design of fast algorithms.
+
+Consider the problem of 'spherical region query'
+    Find all points in a data set that lie withing a given distan from a query point
+
+The unit aspect ratio employed in most quadtree data structures 
+    allows geometric arguments useful in designing fast algorithms 
+        for certain classes of applications
+
+The different variants of the quadtree data structure are differentiated 
+    by the principle used in the recursive decomposition process   
+
+CONSTRUCTION
+    Starts with a square that encloses the spatial data under consideration
+
+
+380-395
+
+Binary search de 4 lados
+
+Dividir el espacio en 2^d
