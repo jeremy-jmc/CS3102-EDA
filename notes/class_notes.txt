@@ -1,0 +1,249 @@
+EDA C1
+	- Conocer las estructuras de datos
+	- Comprender las bases teoricas
+	- Habilidades para dise;ar las ED
+	- Normas de juegos
+
+	conjunto de datos de busqueda
+	imagenes
+	computacion grafica
+
+
+	DS
+		Conjunto de normas
+
+	Arquitectura Von Neumann
+		Ordenar los datos siguen los patrones de la arquitectura de las computadoras
+
+	Aplicacion
+		Buscador de palabras
+		Mapas
+		Modelado 3D(perro)
+			Manejo de mallas
+			Metodo de la mariposa
+		Videojuegos
+			Bluckster
+			WOW
+		Buscador de imagenes (gatos)
+			Metodos Hancraft
+			Encoder/Decoder
+
+	La maldicion de dimensionalidad
+		Complejidad de los algoritmos
+			Aumento exponencial
+		Similaridad sufre
+
+	Geometria + Algebra Lineal + Probabilidades
+	Canal de Veritasium (4 cosas para ser un experto)
+		Repetir algo
+		Practicar en el borde del conocimiento
+
+	What if?
+
+	EDA -> Teoria + Algoritmos
+
+	Implementar
+		Voronoi
+			Triangulizacion de Delaunay
+			Poligonos de Thiessen
+		Shazam
+		RTree
+		BSP
+
+
+	Teoria
+		Miercoles 
+			Quizzes de 10 minutos
+	Laboratorio
+		Lunes
+		Jueves
+			Laboratorios individuales
+				Multidimensionales
+					Mapas
+					3D
+			Presentacion de paper
+				Como si fueran autores
+			Proyecto de fin de curso
+				Implementacion del paper
+
+
+	B, B+, RangeTree
+	QuadTree
+		Point-QuadTree
+			...
+
+	Colision: 
+		2 objetos se solapan
+		2 objeos que comparten un mismo espacio
+
+	Problema que se ocurre -> Problema que viene en el examen
+
+	R Tree
+	Dynamic Hilbert R Tree
+	R* Tree
+
+	Incentivar a partir de la comprension, generalizar
+		deduccion a partir de la teoria
+
+	ESTRUCTURAS DE DATOS
+		Eficientes en tiempo y espacio
+
+		Lineales -> LinkedList, Heap
+			Estaticas: array,
+			Dinamicas: vector, en memoria
+		NoLineales -> Grafos
+			Todo lo xvre esta aca
+
+
+		Propiedades
+			Eficiencia en tiempo y espacio
+			Dinamicas
+
+
+	Problema por solapamiento
+		"Solapamiento malo" el curso
+
+
+		STree
+		Voronoi multidimensional
+
+	Repasar B, B+, Range Tree
+
+
+EDA C2
+	Preludio
+		B 			RAM
+		B+ Tree     ROM
+
+
+	Un nodo no hoja puede tener 2 hijos con un page size de 10
+		Raiz -> Si
+		Interna -> No
+
+	Space Filling
+		Codificacion del espacio
+		Z order
+		Heaper order
+			propiedades de adyacencia
+
+		"Por supervivencia lo van a hacer mas rapido"
+		"Esta hecho para 2 horas"
+
+		En un B+Tree, estan todos los numeros arriba?
+
+
+	Range Tree -> Framework
+		Range Query
+		KNN
+			1-NN
+		Radius Query
+			Breadth-First
+			Depth-First
+
+		Ancestro Comun -> de la busqueda por rango
+			inorder para ranque queries [l, r]
+
+		Range Tree
+			B+ Tree de 1 grado
+			encontrar limites superiores e inferiores y ancestro comun
+
+		Dimensiones
+			Euclides
+			Coordenadas polares
+				Angulo y longitud
+
+				Range Query
+					Area del Trapecio Circular, Sector Circular, Corona Circular
+
+			Cilindricas
+				Angulo, radio y altura
+			Esfericas
+				2 angulos y una longitud
+			
+
+
+	Datos multidimensionales
+		Mapas
+			Distancia entre coordenadas polares
+		Big Data
+			Datos no relacionales
+
+
+		Arquitectura Encoder-Decoder
+			Dado un espaco latente R^512 (Z)
+				Aplicas reduccion de dimensionalidad (PCA, t-SNE, MAP) para hacer la visualizacion
+
+		Cuando se trabaje alta dimensionalidad, se suele aplicar busqueda por similitud
+		* Aproximar la similaridad de coseno con una euclidiana (demostracion) * 
+
+		Metodos de Acceso Multidimensional
+			Baja dimensionalidad
+
+		Metodos de Acceso Metrico
+			Alta dimensionalidad
+
+
+EDA C3
+	Distancia entre mapas
+		Desarrollo iniciales orientados en eso
+	Eagle
+		Hacer todos tu esquemas corresponden a chips integrados
+		Buscar cual es la conexion mas corta entre 2 puntos, parecidos entre mapas
+	Encaje de piezas
+
+	Retos de datos multidimensionales
+		Muchos operadores espaciales no son cerrados
+			Dado
+				N = {1, 2, 3, 4}
+				1 + 2 = 3		Op Cerrada
+				1 - 4 = -1		Op No Cerrada
+
+			Operadores relacionales
+				Comparacion de objetos
+
+	Clasificacion por localizacion
+		Main Memory Structures
+			KD-Tree
+			BSP-Tree
+			BD-Tree
+			QuadTree
+
+		External Memory Structures
+			MOLHPE
+
+
+	Clasificacion por Metodo de Acceso
+		PAM(Point Access Method)
+		SAM(Spatial Access Method)
+
+	Clasificacion por Tipo de Particion
+		Space-Driven
+		Data-Drive
+
+	Requerimientos
+	1
+	2
+	3
+	4
+
+	Queries
+		Point Query
+		Range Query
+		Region Query
+
+
+	Puntos limites(caen en las lineas de las particiones)
+		Pueden llegar a tener limites inutiles
+
+	QuadTree
+		Construcion balanceada RETO
+		Eliminacion
+
+EDA C4
+	Range Query
+		Donde hay interseccion buscas los puntos y te fijas si esta dentro del region de busqueda (x1, y1) (x2, y2)
+
+
+	eje con varianza menor
+		matriz de covarianza
+    

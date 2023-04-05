@@ -1,7 +1,0 @@
-B 			RAM
-B+ Tree     ROM
-
-
-Un nodo no hoja puede tener 2 hijos con un page size de 10
-	Raiz -> Si
-	Interna -> No
