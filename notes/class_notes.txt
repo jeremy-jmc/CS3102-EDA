@@ -239,6 +239,7 @@ EDA C3
 		Construcion balanceada RETO
 		Eliminacion
 
+
 EDA C4
 	Range Query
 		Donde hay interseccion buscas los puntos y te fijas si esta dentro del region de busqueda (x1, y1) (x2, y2)
@@ -247,3 +248,55 @@ EDA C4
 	eje con varianza menor
 		matriz de covarianza
     
+
+EDA C5
+	PR QuadTree
+		Division en funcion del espacio con la misma escala
+			64 * 64 -> 32 * 32 -> 16 * 16
+		Overlapping de puntos -> Particion hasta el infinito
+			En el caso de overlapping se suele establecer un tama;o minimo de hoja y de ahi listar los elementos en las hojas
+
+		Gasta mucha memoria creando nodos imaginarios
+
+	Bucket PR QuadTree
+		Varios elementos por cada nodo
+			Capacidad maxima
+			Permite menos particiones
+				Util para colisiones
+
+		Es mas facil trabajar con objetos puntuales
+			Para personas es mas facil trabajar con cajas, paralelepipedos
+		Condiciones de frontera con vecinos
+
+		Forma vanilla
+			Que pasa si se chocan 2 puntos de esquinas
+			Usar areas
+
+
+	xmin <= log2(a) <= xmax
+	ymin <= log2(a) <= ymax
+		
+		Spread concepto
+	
+	Compressed QuadTrees
+		Usar etiquetas para la profundidad
+	
+	Point -> PR -> RegionQuadTree
+
+	Region QuadTree
+		Nodos grises
+			Sus hijos tienen data
+		Nodos blancos
+			No tiene data
+		Nodos negros
+			Tienen data
+
+		Aplicaciones en fisica
+			Pasas del todos contra todos a cuadriculas
+			Orden de Healer
+
+		Operaciones entre los arboles del Region QuadTree
+		Comprension
+			Perder informacion
+			Ganar niveles(bajar en el arboles)
+

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <algorithm>
 #include <climits>
 #include <ostream>
 #include <memory>
