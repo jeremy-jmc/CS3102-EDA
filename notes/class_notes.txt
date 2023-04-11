@@ -300,3 +300,39 @@ EDA C5
 			Perder informacion
 			Ganar niveles(bajar en el arboles)
 
+
+
+Dado 2 puntos (x1, y1) , (x2, y2) calcule cual es la altura del PR-Quadtree
+
+Sea l el lado de la region del PR-QuadTree, 
+	x_min = min(x1, y2)
+	y_min = min(y1, y2)
+
+	x_max = max(x1, y2)
+	y_max = max(y1, y2)
+
+Se sabe que basta que se haya una linea divisoria en alguno de los ejes para que los puntos se separen y se termine de hacer los split.
+Entonces existe un punto de corte en alguno de los ejes tal que
+	x_min <= punto_corte <= x_max
+	y_min <= punto_corte <= y_max
+	...
+
+Entonces visto desde el punto de vista de un eje 
+	la altura del PR-QuadTree seria el numero de pasos que toma 
+	el binary search en encontrar un numero mayor igual que el minimo en el eje y menor igual que el maximo en el eje.
+
+Finalmente tomamos el minimo entre las alturas de todos los ejes, diferentes de 0.
+
+
+C7
+	Boid algorithm
+		Separation
+		Alingment
+		Cohesion
+
+	Vector
+		Direccion
+		Modulo
+	Vector unitario
+	Coordenadas polares
+	
