@@ -336,3 +336,134 @@ C7
 	Vector unitario
 	Coordenadas polares
 	
+C8
+		QuadTree/Octree
+			Mucho desperdicio de espacio dado que se generan 4 espacios por cada
+
+		Point/ QuadTree -> data driven
+		PointRegion -> divisiones equidistante
+
+	2 familias: cortes guiados por puntos/guiados por "otras cositas"
+
+	Point KD-Tree
+		cortes en x, y, z, w, u by loop
+
+		convencion < >=
+
+		Como no es un arbol balanceado la busqueda en complejidad 'log' no es estable
+
+		Median-split KD-Tree
+	
+	Modelado de mallas
+
+	Modelado volumetrico
+		voxels(la version de 3 dimensiones de 1 pixel)
+		NeRF	
+
+	Puede cambiar la ubicacion del eje por molestar
+
+	Delete: 
+		2 reglas
+		complejidad: O(h * # nodos de un sub arbol a profundidad d con altura h)
+
+	Variantes de KD-Tree
+		Median-split-KD-Tree
+			IID -> que pasa si tenemos clusters?
+			Partir en el eje con mayor rango
+
+		Adaptative-KD-Tree
+			Varianza
+				Eje con mayor varianza
+					Varianza de las distancias
+		Fair-split-KD-Tree
+		L = Var(G_left) + Var(G_right) + |C(G_left) - C(G_right)|
+
+
+C9
+	BSP-Tree
+		mx + b = y
+		ecuacion de la recta -> vectorialmente
+		dada una recta L como 
+			determinas si los puntos estan en lados opuestos
+		proyeccion de un vector sobre una recta
+			modulo * direccion
+				a. b / ||a|| ||b|| * a/||a||
+		similaridad de coseno
+		vector normal
+			vector perpendicular a la recta
+				forma una base canonica
+		como definir la recta entre un punto, vector y vector normal
+
+		el vector normal define un lado positivo y un lado negativo en el plano
+		hiperplano
+
+		generalizacion del KDtree con cortes no necesariamente paralelos a los ejes
+			depende ^ k
+			calcular la interseccoin entre poligonos
+		ray tracing relacionado con pong
+
+		Painter's algorithm
+
+		
+C10
+	producto punto
+	producto vectorial
+	regla de la mano derecha
+	algoritmo para saber figura convexa o no convexa
+		el signo se va a mantener
+		else
+			por ahi no va a cambiar el signo
+	producto cruz de todos los lados, con eso se sabe si es convexo o no convexo
+
+	con producto cruz
+		como saber a que lado esta un punto
+
+
+	voxel -> pixel en 3 dimensiones
+
+	"depende"
+
+	GridFile
+		atributo
+		problema de grandes archivos  
+			-> no puedes meter todo a RAM
+			-> recorrido en RAM
+
+		Grid
+			Grid Cell
+			Buckets
+		
+		Las particiones se hacen en las medianas
+		granularidad
+			muchos buckets igualmente distribuidos
+
+		KBTree
+		KDBTree
+
+	EXCELL
+		variante de GridFile
+		no guarda particiones de los ejes
+
+		k^N
+
+		si partimos 7 veces el EXCELL
+			cual es el buddy
+
+
+		dado n cortes y K dimensiones
+			ubique la posicion del elemento C
+
+
+
+B-Tree
+B+Tree
+Range Tree
+Point QuadTree
+PointRegion QuadTree
+    BucketPR
+Compresed QuadTree
+Region QuadTree
+KD-Tree
+BSP-Tree
+GridFile
+EXCELL
