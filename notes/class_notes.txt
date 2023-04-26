@@ -467,3 +467,57 @@ KD-Tree
 BSP-Tree
 GridFile
 EXCELL
+
+
+C11	
+	Tree Directory Methods
+		son estructuras curiosas
+	
+	K-d-B Tree
+		Kevin De Bruyne Tree
+		cajitas con puntitos
+		cajitas que tienen cajitas en una linea recta
+		arbol de arboles
+
+		Propagacion hacia abajo
+		Propagacion hacia arriba
+
+	LSD Tree
+		archivos grandes
+		Local Split Decision
+
+	hB Tree
+		el arbol que estaba mal graficado
+
+		
+
+C12
+	LSD Tree y HB Tree soluciona el problema del KdB Tree
+	particion 1/3 2/3 -> demostracion
+
+	RTree
+		Cartografia
+		Tiene muchas variantes
+			Implementacion
+		Principal enemigo
+			Overlapping
+		
+		El anillo unico
+		Gravity Falls
+			Minimum bounding box
+		Todo se basa del BTree, BST
+		BTree por cajas
+
+		el algoritmo de construccion del R-Tree tiene como objetivo minimizar la suma de areas o perimetros de todos los MBB
+		Minimizar el perimetro
+			media armonica
+			media geometrica
+
+			demostrar
+		ver problemas 2 dimensionales en 1
+		K-Means
+
+		Linear split
+			seleccione 2 objetos como semillas
+			
+
