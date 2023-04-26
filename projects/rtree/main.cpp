@@ -363,7 +363,8 @@ void RTreeNode::linear_split()
                         brother->insert(points_aux[i]);
                 }
             }
-
+        std::cout << "\tleaf: " << *this << std::endl;
+        std::cout << "\tbrother: " << *this << std::endl;
         // add brother to parent
         if (this->parent_ == nullptr)
             std::runtime_error("The node has no parent");
@@ -373,11 +374,6 @@ void RTreeNode::linear_split()
         
         if (this->parent_->children_.size() > M)
             this->parent_->split();
-
-        // std::cout << "\tthis: " << *this;
-        // std::cout << "\t\t" << this->points_ << " \t" << this->mbb_ << std::endl;
-        // std::cout << "\tbrother: " << *brother;
-        // std::cout << "\t\t" << brother->points_ << " \t" << brother->mbb_ << std::endl;
         // -------
     }
     else 
@@ -397,50 +393,38 @@ void RTreeNode::linear_split()
                 idx_s = i;
                 dis = rectangle_distance(children_[i], f);
             }
+        
         s = children_[idx_s];
-        std::cout << "\tf: " << *f;
-        std::cout << "\ts: " << *s;
-
         std::vector<RTreeNode*> children_aux = this->children_;
 
+        std::cout << "\tf: " << *f << "\ts: " << *s;
         // give the half of children to the brother
         RTreeNode* brother = new RTreeNode(false);
         this->children_ = std::vector<RTreeNode*>();
         this->mbb_ = MBB();
 
         this->children_.push_back(f);
-        for (Point p : f->points_)
-            this->mbb_.expand(p);
-        std::cout << "\t\t" << *this;
-        for (RTreeNode* c : this->children_)
-            std::cout << "\t\t\t" << *c;
+        this->mbb_.expand(f->mbb_);
 
         brother->children_.push_back(s);
-        for (Point p : s->points_)
-            brother->mbb_.expand(p);
-        std::cout << "\t\t" << *brother;
-        for (RTreeNode* c : brother->children_)
-            std::cout << "\t\t\t" << *c;
+        brother->mbb_.expand(s->mbb_);
 
-        
         // reassign the children
         std::cout << "reassign children\n";
         for (int i = 0; i < children_aux.size(); i++)
             if (i != idx_f && i != idx_s)
             {
-                std::cout << "\t\t" << *children_aux[i];
+                std::cout << "\t\t" << i << " -> " << *children_aux[i];
                 if (this->mbb_.expansion_needed(children_aux[i]->mbb_) < brother->mbb_.expansion_needed(children_aux[i]->mbb_))
                 {
                     if (this->children_.size() >= m)
                     {
-                        std::cout << "\t\t\tto brother\n";
                         brother->children_.push_back(children_aux[i]);
                         for (Point p : children_aux[i]->points_)
                             brother->mbb_.expand(p);
                     }
                     else
                     {
-                        std::cout << "\t\t\tto this\n";
                         this->children_.push_back(children_aux[i]);
                         for (Point p : children_aux[i]->points_)
                             this->mbb_.expand(p);
@@ -450,14 +434,12 @@ void RTreeNode::linear_split()
                 {
                     if (brother->children_.size() >= m)
                     {
-                        std::cout << "\t\t\tto this\n";
                         this->children_.push_back(children_aux[i]);
                         for (Point p : children_aux[i]->points_)
                             this->mbb_.expand(p);
                     }
                     else
                     {
-                        std::cout << "\t\t\tto brother\n";
                         brother->children_.push_back(children_aux[i]);
                         for (Point p : children_aux[i]->points_)
                             brother->mbb_.expand(p);
@@ -465,27 +447,18 @@ void RTreeNode::linear_split()
                 }
             }
         
-        std::cout << "\t\t" << *this;
-        for (RTreeNode* c : this->children_)
-            std::cout << "\t\t\t" << *c;
-
-        std::cout << "\t\t" << *brother;
-        for (RTreeNode* c : brother->children_)
-            std::cout << "\t\t\t" << *c;
-        
         // add brother to parent
         if (this->parent_ == nullptr)
             this->parent_ = new RTreeNode(false);
         
         this->parent_->children_.push_back(this);
         this->parent_->children_.push_back(brother);
-
+        
         for (RTreeNode* c : this->parent_->children_)
             this->parent_->mbb_.expand(c->mbb_);
-            
-        std::cout << "\t\t" << *this->parent_;        
         brother->parent_ = this->parent_;
-
+        
+        std::cout << *this->parent_ << std::endl;
         if (this->parent_->children_.size() > M)
             this->parent_->split();
     }
@@ -602,7 +575,7 @@ void RTree::print_ascii_node(const RTreeNode* node, int depth) const
 
 int main() {
     srand(time(NULL));
-    SCALAR = 1;
+    SCALAR = 20;
     RTree rtree(LINEAR_SPLIT);
     
     int window_width = 800 / 1.5;
@@ -610,7 +583,7 @@ int main() {
 
     // Insert points
 
-    int test =1;
+    int test = 2;
 
     if (test == 1)
     {
@@ -621,8 +594,10 @@ int main() {
         std::vector<Point> pt = {
             Point(7, 10), Point(9, 11), Point(3, 4), Point(4, 5), Point(1, 1), 
             Point(12, 2), Point(14, 15), Point(16, 3), Point(13, 13), Point(5, 6), 
-            Point(8, 9), Point(15, 12), Point(17, 1), Point(16, 14), Point(11, 12),
-            Point(11, 14), Point(14, 3)
+            Point(8, 9), Point(15, 12), 
+            Point(17, 1), Point(16, 14), 
+            // Point(11, 12),
+            // Point(11, 14), Point(14, 3)
         };
 
         for (const auto& p : pt)
