@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <utility>
 
 
 template <template <class, class> class Container, typename T>
@@ -292,6 +293,52 @@ void RTreeNode::split()
 
 SplitType RTreeNode::split_type;
 
+std::pair<int, int> pick_two(RTreeNode* node)
+{
+    RTreeNode *f = nullptr, *s = nullptr;
+    RTreeNode *left, *right, *up, *down;
+    int idx_left, idx_right, idx_up, idx_down;
+    for (int i = 0; i < node->children_.size(); i++)
+    {   // RTreeNode *child : node->children_
+        if(node->children_[i]->mbb_.lower.coords[0] == node->mbb_.lower.coords[0])
+        {
+            left = node->children_[i]; 
+            idx_left = i;
+        }
+        if(node->children_[i]->mbb_.upper.coords[0] == node->mbb_.upper.coords[0])
+        {
+            right = node->children_[i];
+            idx_right = i;
+        }   
+        if(node->children_[i]->mbb_.lower.coords[1] == node->mbb_.lower.coords[1])
+        {
+            down = node->children_[i]; 
+            idx_down = i;
+        }
+        if(node->children_[i]->mbb_.upper.coords[1] == node->mbb_.upper.coords[1])
+        {
+            up = node->children_[i]; 
+            idx_up = i;
+        }
+            
+    }
+    double x_ratio, y_ratio;
+    x_ratio = (
+        right->mbb_.lower.coords[0] - left->mbb_.upper.coords[0]
+    ) / (
+        right->mbb_.upper.coords[0] - left->mbb_.lower.coords[0]
+    );
+    y_ratio = (
+        up->mbb_.lower.coords[1] - down->mbb_.upper.coords[1]
+    ) / (
+        up->mbb_.upper.coords[1] - down->mbb_.lower.coords[1]
+    );
+    if(x_ratio > y_ratio)
+        return {idx_left, idx_right};
+    else
+        return {idx_down, idx_up};
+}
+
 void RTreeNode::linear_split() 
 {
     if (!this->is_leaf_)
@@ -304,7 +351,7 @@ void RTreeNode::linear_split()
     std::uniform_int_distribution<> distrib(0, points_.size() - 1);
     
     // * 1. Choose two seeds
-    int idx_f = 0, idx_s;       // distrib(gen)
+    int idx_f = distrib(gen), idx_s;
     Point f = points_[idx_f], s;
     double dis = -1;
     for (int i = 0; i < points_.size(); i++)
@@ -369,8 +416,11 @@ RTreeNode* linear_split_internal(RTreeNode* node)
     std::uniform_int_distribution<> distrib(0, node->children_.size() - 1);
     
     // choose two random children (MBBs), and then the farthest one from them
-    int idx_f = 0, idx_s;       // distrib(gen)
-    RTreeNode* f = node->children_[idx_f], *s;
+    int idx_f = distrib(gen), idx_s;       // 
+    RTreeNode *f, *s;
+    auto [fi, se] = pick_two(node);
+    // DUMMY
+    f = node->children_[idx_f];
     double dis = -1;
     for (int i = 0; i < node->children_.size(); i++)
     {
@@ -383,7 +433,12 @@ RTreeNode* linear_split_internal(RTreeNode* node)
         }
     }
     s = node->children_[idx_s];
-    std::cout << "\tf: " << *f << "\ts: " << *s;
+    // std::cout << "\tf: " << *f << "\ts: " << *s;
+    // ENDDUMMY
+    idx_f = fi;
+    idx_s = se;
+    f = node->children_[idx_f];
+    s = node->children_[idx_s];
 
     // give the half of children to the brother
     RTreeNode* brother = new RTreeNode(false);
@@ -539,18 +594,18 @@ void RTree::insert_non_full(RTreeNode* node, Point p)
         subtree->mbb_.expand(p);
         if (subtree->is_full() && subtree->is_leaf())
         {
-            std::cout << "case #1\n";
+            // std::cout << "case #1\n";
             subtree->points_.push_back(p);           
             subtree->split();
         }
         else if (subtree->is_full())
         {
-            std::cout << "case #2\n";
+            // std::cout << "case #2\n";
             insert_non_full(subtree, p);
         }
         else
         {
-            std::cout << "case #3\n";
+            // std::cout << "case #3\n";
             insert_non_full(subtree, p);
         }
 
@@ -633,11 +688,11 @@ void RTree::print_ascii_node(const RTreeNode* node, int depth) const
 
 int main() {
     srand(time(NULL));
-    SCALAR = 50;
+    SCALAR = 20;
     RTree rtree(LINEAR_SPLIT);
     
-    int window_width = 800*2 / 1.5;
-    int window_height = 600*2 / 1.5;
+    int window_width = 800;
+    int window_height = 600;
 
     // Insert points
 
@@ -645,8 +700,8 @@ int main() {
 
     if (test == 1)
     {
-        for (int i = 0; i < 50; ++i)
-            rtree.insert(Point(10 + rand() % window_width, 10 + rand() % window_height));
+        for (int i = 0; i < 20; ++i)
+            rtree.insert(Point(20 + rand() % window_width, 20 + rand() % window_height));
     }
     else if (test == 2) {
         std::vector<Point> pt = {
@@ -654,9 +709,8 @@ int main() {
             Point(9, 11), Point(16, 3), Point(13, 13), 
             Point(4, 5), Point(1, 1), Point(12, 2), 
             Point(5, 6), Point(8, 9), Point(17, 1),  
-            Point(2, 2),
+            Point(2, 2), Point(11, 14), Point(14, 3), 
             Point(15, 12), Point(16, 14), Point(11, 12),
-            Point(11, 14), Point(14, 3), 
             Point(2, 3),  Point(6, 12), Point(8, 7),
             Point(10, 4), Point(11, 11), Point(4, 5),
             Point(5, 2), Point(9, 9), Point(13, 8),
@@ -677,7 +731,7 @@ int main() {
                 c *= SCALAR;
             // std::cout << ">>>> " << i << ". INSERT " << p << std::endl;
             rtree.insert(p);
-            std::cout << "  >>> RTREE\n";
+            // std::cout << "  >>> RTREE\n";
             // rtree.print_ascii();
             std::cout << std::endl;
             i++;
