@@ -197,7 +197,7 @@ Point centroid(std::vector<Point>& points)
 }
 
 static double rectangle_distance(RTreeNode* r1, RTreeNode* r2)
-{
+{   // centroid criteria
     if (r1->is_leaf_ && r2->is_leaf_)
     {
         Point c1 = centroid(r1->points_);
@@ -229,11 +229,15 @@ RTreeNode::RTreeNode(bool is_leaf) : is_leaf_(is_leaf)
 
 std::ostream& operator<<(std::ostream& os, RTreeNode& node)
 {
-    os << node.mbb_ << " leaf: " << std::boolalpha << node.is_leaf_ << " points: " << node.points_.size() << " children: " << node.children_.size() << std::endl;
-    os << "\t\t";
+    os << node.mbb_ << " leaf: " << std::boolalpha << node.is_leaf_;
+    os << " points: " << node.points_.size();
+    os << " children: " << node.children_.size() << std::endl;
     if (node.is_leaf_)
+    {
+        os << "\t\t";
         os << node.points_;
-    os << std::endl;
+        os << std::endl;
+    }
     return os;
 }
 
@@ -368,18 +372,15 @@ RTreeNode* linear_split_internal(RTreeNode* node)
     double dis = -1;
     for (int i = 0; i < node->children_.size(); i++)
     {
-        std::cout << *node->children_[i] << std::endl;
-        std::cout << rectangle_distance(node->children_[i], f) << std::endl;
+        // std::cout << *node->children_[i] << std::endl;
+        // std::cout << rectangle_distance(node->children_[i], f) << std::endl;
         if (idx_f != i && rectangle_distance(node->children_[i], f) > dis)
         {
             idx_s = i;
             dis = rectangle_distance(node->children_[i], f);
         }
     }
-    std::cout << "pase\n";
-    std::cout << idx_s << std::endl;
     s = node->children_[idx_s];
-    std::cout << "pase\n";
     std::cout << "\tf: " << *f << "\ts: " << *s;
 
     // give the half of children to the brother
@@ -623,12 +624,12 @@ int main() {
 
     // Insert points
 
-    int test = 1;
+    int test = 2;
 
     if (test == 1)
     {
-        for (int i = 0; i < 20; ++i)
-            rtree.insert(Point(rand() % window_width, rand() % window_height));
+        for (int i = 0; i < 50; ++i)
+            rtree.insert(Point(10 + rand() % window_width, 10 + rand() % window_height));
     }
     else if (test == 2) {
         std::vector<Point> pt = {
@@ -637,14 +638,19 @@ int main() {
             Point(14, 15), Point(16, 3), Point(13, 13), 
             Point(5, 6), Point(8, 9), Point(15, 12), 
             Point(17, 1), Point(16, 14), Point(11, 12),
-            Point(11, 14), Point(14, 3), Point(2, 2),
+            // Point(11, 14), Point(14, 3), Point(2, 2),
         };
-
+        int i = 1;
         for (auto& p : pt)
         {
             for (auto& c : p.coords)
                 c *= SCALAR;
+            std::cout << ">>>> " << i << ". INSERT " << p << std::endl;
             rtree.insert(p);
+            std::cout << "  >>> RTREE\n";
+            rtree.print_ascii();
+            std::cout << std::endl;
+            i++;
         }
             
     } else {
@@ -663,7 +669,7 @@ int main() {
     
     printf("Done\n");
 
-    rtree.print_ascii();
+    // rtree.print_ascii();
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) 
@@ -676,7 +682,7 @@ int main() {
     SDL_Window* window = SDL_CreateWindow(
         "R-Tree Visualization", 
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-        window_width, window_height, 
+        window_width*1.1, window_height*1.1, 
         SDL_WINDOW_SHOWN
     );
 
