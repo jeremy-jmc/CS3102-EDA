@@ -22,8 +22,8 @@ std::ostream &operator<<(std::ostream &os, const Container<T, std::allocator<T>>
 
 
 int SCALAR = 20;
-const int M = 3;
-const int m = 2;
+const int M = 3;    // 3
+const int m = 2;    // 2
 const double EPS = 1e-9;
 const int NUM_DIMENSIONS = 2;
 const double INF = std::numeric_limits<double>::max(), NINF = std::numeric_limits<double>::lowest();
@@ -216,7 +216,6 @@ static double rectangle_distance(RTreeNode* r1, RTreeNode* r2)
         );
         return point_distance(c1, c2);
     }
-    
 }
 
 RTreeNode::RTreeNode(bool is_leaf) : is_leaf_(is_leaf) 
@@ -305,7 +304,7 @@ void RTreeNode::linear_split()
     std::uniform_int_distribution<> distrib(0, points_.size() - 1);
     
     // * 1. Choose two seeds
-    int idx_f = distrib(gen), idx_s;
+    int idx_f = 0, idx_s;       // distrib(gen)
     Point f = points_[idx_f], s;
     double dis = -1;
     for (int i = 0; i < points_.size(); i++)
@@ -314,9 +313,11 @@ void RTreeNode::linear_split()
             idx_s = i;
             dis = point_distance(points_[i], f);
         }
-    s = points_[idx_s];
+    s = points_[idx_s]; 
     // std::cout << "\tf: " << f << " s: " << s << std::endl;
+    
     RTreeNode* brother = new RTreeNode(true);
+    brother->parent_ = this->parent_;
     std::vector<Point> points_aux = this->points_;
     this->points_ = std::vector<Point>();
     this->mbb_ = MBB();
@@ -351,8 +352,9 @@ void RTreeNode::linear_split()
     if (this->parent_ == nullptr)
         throw std::runtime_error("The node has no parent");
     
-    this->parent_->children_.push_back(brother);
-    brother->parent_ = this->parent_;   
+    std::cout << " >>> parent this: " << *this->parent_;
+    std::cout << " >>> parent brother: " << *brother->parent_;
+    brother->parent_->children_.push_back(brother);
 }
 
 RTreeNode* linear_split_internal(RTreeNode* node)
@@ -367,7 +369,7 @@ RTreeNode* linear_split_internal(RTreeNode* node)
     std::uniform_int_distribution<> distrib(0, node->children_.size() - 1);
     
     // choose two random children (MBBs), and then the farthest one from them
-    int idx_f = distrib(gen), idx_s;
+    int idx_f = 0, idx_s;       // distrib(gen)
     RTreeNode* f = node->children_[idx_f], *s;
     double dis = -1;
     for (int i = 0; i < node->children_.size(); i++)
@@ -432,15 +434,21 @@ RTreeNode* linear_split_internal(RTreeNode* node)
     std::cout << "\tnode: " << *node;
     std::cout << "\tbrother: " << *brother;
     if (node->parent_ == nullptr)
+    {
         node->parent_ = new RTreeNode(false);
-    
-    node->parent_->children_.push_back(node);
-    node->parent_->children_.push_back(brother);
+        node->parent_->children_.push_back(node);
+    }
+    brother->parent_ = node->parent_;
+    brother->parent_->children_.push_back(brother);
+
+    for (RTreeNode* c : brother->children_)
+        c->parent_ = brother;
     
     for (RTreeNode* c : node->parent_->children_)
         node->parent_->mbb_.expand(c->mbb_);
-    brother->parent_ = node->parent_;
     
+    std::cout << " >>> parent this: " << *node->parent_;
+    std::cout << " >>> parent brother: " << *brother->parent_;
     return node->parent_;
 }
 
@@ -516,6 +524,8 @@ void RTree::insert(Point p)
 
 void RTree::insert_non_full(RTreeNode* node, Point p)
 {
+    // std::cout << "\tchildren size: " << node->children_.size() << std::endl;
+    
     if (node->is_leaf())
     {
         node->points_.push_back(p);
@@ -523,7 +533,8 @@ void RTree::insert_non_full(RTreeNode* node, Point p)
     }
     else 
     {
-        std::cout << "\t\t\tfind non-full subtree" << std::endl;
+        // std::cout << "\t\t\tfind non-full subtree" << std::endl;
+        node->mbb_.expand(p);
         RTreeNode* subtree = node->choose_subtree(p);
         subtree->mbb_.expand(p);
         if (subtree->is_full() && subtree->is_leaf())
@@ -542,9 +553,12 @@ void RTree::insert_non_full(RTreeNode* node, Point p)
             std::cout << "case #3\n";
             insert_non_full(subtree, p);
         }
-        if (node->is_full())
+
+        if (node->is_full() && !node->is_leaf())
             node->parent_ = linear_split_internal(node);
     }
+    if (node->is_full() && !node->is_leaf())
+        node->parent_ = linear_split_internal(node);
 }
 
 void RTree::draw(const RTreeNode* node, SDL_Renderer* renderer) const 
@@ -592,20 +606,23 @@ void RTree::print_ascii_node(const RTreeNode* node, int depth) const
     if (node == nullptr)
         return;
 
-    std::string indentation(depth * 2, ' ');
+    std::string indentation(depth, '\t');
 
-    std::cout << indentation << "MBB: ("
+    std::cout << depth << ": "
+              << indentation << "MBB: ("
               << node->mbb().lower.coords[0] << ", " << node->mbb().lower.coords[1] << "), ("
               << node->mbb().upper.coords[0] << ", " << node->mbb().upper.coords[1] << ") -> ";
 
-    std::cout << "is leaf: " << std::boolalpha << node->is_leaf_ << "\n";
+    std::cout << "is leaf: " << std::boolalpha << node->is_leaf_;
+    if (node->parent_)
+        std::cout << "\t" << node->parent_->mbb_ << std::endl;
 
     if (node->is_leaf()) {
         std::cout << indentation << "Points:\n";
         for (const Point& p : node->points())
             std::cout << indentation << "  (" << p.coords[0] << ", " << p.coords[1] << ")\n";
     } else {
-        std::cout << indentation << "Children:\n";
+        std::cout << indentation << "Children: " << node->children().size() << std::endl;
         for (const auto& child : node->children())
             print_ascii_node(child, depth + 1);
     }
@@ -616,15 +633,15 @@ void RTree::print_ascii_node(const RTreeNode* node, int depth) const
 
 int main() {
     srand(time(NULL));
-    SCALAR = 20;
+    SCALAR = 50;
     RTree rtree(LINEAR_SPLIT);
     
-    int window_width = 800 / 1.5;
-    int window_height = 600 / 1.5;
+    int window_width = 800*2 / 1.5;
+    int window_height = 600*2 / 1.5;
 
     // Insert points
 
-    int test = 2;
+    int test = 1;
 
     if (test == 1)
     {
@@ -633,22 +650,35 @@ int main() {
     }
     else if (test == 2) {
         std::vector<Point> pt = {
-            Point(7, 10), Point(9, 11), Point(3, 4), 
+            Point(3, 4), Point(7, 10), Point(14, 15), 
+            Point(9, 11), Point(16, 3), Point(13, 13), 
             Point(4, 5), Point(1, 1), Point(12, 2), 
-            Point(14, 15), Point(16, 3), Point(13, 13), 
-            Point(5, 6), Point(8, 9), Point(15, 12), 
-            Point(17, 1), Point(16, 14), Point(11, 12),
-            // Point(11, 14), Point(14, 3), Point(2, 2),
+            Point(5, 6), Point(8, 9), Point(17, 1),  
+            Point(2, 2),
+            Point(15, 12), Point(16, 14), Point(11, 12),
+            Point(11, 14), Point(14, 3), 
+            Point(2, 3),  Point(6, 12), Point(8, 7),
+            Point(10, 4), Point(11, 11), Point(4, 5),
+            Point(5, 2), Point(9, 9), Point(13, 8),
+            Point(15, 2), Point(16, 10), Point(12, 14),
+            Point(14, 4), Point(17, 16), Point(1, 9),
+            Point(7, 15), Point(3, 1), Point(10, 1),
+            Point(6, 8), Point(10, 3), Point(2, 7),
+            Point(5, 3), Point(9, 6), Point(13, 7),
+            Point(11, 10), Point(14, 5), Point(16, 9),
+            Point(8, 5), Point(12, 12), Point(17, 14),
+            Point(4, 9), Point(15, 3), Point(7, 13),
+            Point(10, 15), Point(13, 2), Point(3, 1),
         };
         int i = 1;
         for (auto& p : pt)
         {
             for (auto& c : p.coords)
                 c *= SCALAR;
-            std::cout << ">>>> " << i << ". INSERT " << p << std::endl;
+            // std::cout << ">>>> " << i << ". INSERT " << p << std::endl;
             rtree.insert(p);
             std::cout << "  >>> RTREE\n";
-            rtree.print_ascii();
+            // rtree.print_ascii();
             std::cout << std::endl;
             i++;
         }
@@ -668,8 +698,7 @@ int main() {
     }
     
     printf("Done\n");
-
-    // rtree.print_ascii();
+    rtree.print_ascii();
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) 
