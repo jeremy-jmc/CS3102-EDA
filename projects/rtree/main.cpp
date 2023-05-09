@@ -10,7 +10,7 @@
 #include <random>
 
 const int M = 3;
-const int m = 2;    // m <= ceil(M/2)
+const int m = 2;
 const double EPS = 1e-9;
 const int NUM_DIMENSIONS = 2;
 const double INF = std::numeric_limits<double>::max(), NINF = std::numeric_limits<double>::lowest();
@@ -115,9 +115,8 @@ static double point_distance(const Point& p1, const Point& p2)
 
 // * RTREE NODE
 
-class RTreeNode 
+struct RTreeNode 
 {
-public:
 // methods
     RTreeNode(bool is_leaf = true);
     ~RTreeNode() {}
@@ -129,11 +128,18 @@ public:
 
     
     bool is_leaf() const { return is_leaf_; }
+
+    bool overflow() const 
+    { 
+        if (this->is_leaf())
+            return points_.size() > M;
+        return children_.size() > M;
+    }
+
     std::shared_ptr<RTreeNode> insert(const Point& p);
     
     static SplitType split_type;
-    
-private:
+
 // atributes
     bool is_leaf_;
     MBB mbb_;
@@ -163,10 +169,25 @@ std::shared_ptr<RTreeNode> RTreeNode::insert(const Point& p)
         points_.push_back(p);
         mbb_.expand(p);
 
-        // Check if the node overflows
-        if (points_.size() > M)
-            split();
-    } else 
+        // If the current node is a leaf and has no parent, create a new parent and expand the MBB
+        if (this->parent_ == nullptr)
+        {   // If the node is root
+            this->parent_ = std::make_shared<RTreeNode>(RTreeNode(false));
+            for (const Point& point : points_)
+                this->parent_->expand(point);
+            
+            // Check if the node overflows
+            if (points_.size() > M)
+                split();
+            this = this->parent_;
+        }
+        else 
+        {
+            // Check if the node overflows
+            if (points_.size() > M)
+                split();
+        }
+    } else
     {
         // If the current node is not a leaf, choose the best subtree to insert the point
         std::shared_ptr<RTreeNode> subtree = choose_subtree(p);
@@ -231,6 +252,7 @@ void RTreeNode::linear_split()
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(0, points_.size() - 1);
 
+    if ()
 
     // choose one random point, and then the farthest point from it
     int idx_f = distrib(gen), idx_s;
@@ -244,7 +266,6 @@ void RTreeNode::linear_split()
             dis = point_distance(points_[i], f);
         }
     s = points_[idx_s];
-
     std::cout << "f: " << f << " s: " << s << std::endl;
     
     // split the node in two children
@@ -396,9 +417,22 @@ int main() {
     int window_height = 600 / 2.5;
 
     // Insert points
-    for (int i = 0; i < 20; ++i)
-        rtree.insert(Point(rand() % window_width, rand() % window_height));
+    // for (int i = 0; i < 20; ++i)
+    //     rtree.insert(Point(rand() % window_width, rand() % window_height));
 
+    rtree.insert(Point(7, 10));
+    rtree.insert(Point(9, 11));
+    rtree.insert(Point(3, 4));
+    rtree.insert(Point(4, 5));
+    rtree.insert(Point(1, 1));
+    rtree.insert(Point(12, 2));
+    rtree.insert(Point(14, 15));
+    rtree.insert(Point(16, 3));
+    rtree.insert(Point(13, 13));
+    rtree.insert(Point(5, 6));
+    rtree.insert(Point(8, 9));
+    rtree.insert(Point(15, 12));
+    
     // rtree.insert(Point(  0,   0));
     // rtree.insert(Point( 10,  10));
     // rtree.insert(Point( 20,  20));
