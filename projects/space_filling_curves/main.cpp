@@ -117,7 +117,7 @@ private:
 int morton(int x, int y) 
 {
     int z = 0;
-    for (int i = 0; i < (sizeof(int) * 8); ++i)
+    for (int i = 0; i < int(sizeof(int) * 8); ++i)
         z |= (x & (1 << i)) << i | (y & (1 << i)) << (i + 1);
     return z;
 }
@@ -171,33 +171,60 @@ private:
 };
 
 // Crear la clase para Gray-curve
+
+int to_gray_code(int n) {
+    return n ^ (n >> 1);
+}
+
+
 class GrayCurve {
 public:
-    GrayCurve(int n) : n(n) 
-    {
-        counter = 0;
-        path.resize(static_cast<size_t>(std::pow(4, n)));
-    }
+    GrayCurve(int n) : n(n) {}
 
     std::vector<Point> getPoints() { return path; }
 
-    void run() { grayCurve(Point(0,0), Point(1, 0), Point(0, 1), n); }
+    void run() { grayCurve(); }
 private:
     int n;
     int counter;
     std::vector<Point> path;
 
-    void grayCurve(Point C, Point x, Point y, int n)
+    void grayCurve()
     {
+        std::vector<
+            std::pair<int, std::pair<int, int>>
+        > psum;
+        for (int x = 0; x < n; x++)
+        {
+            for (int y = 0; y < n; y++)
+            {   
+                auto sum = to_gray_code(morton(x, y));
+                // std::cout << x << " " << y << " -> " << sum << std::endl;
+                psum.push_back({sum, {x, y}});
+            }
+        }
+        sort(psum.begin(), psum.end(), [](std::pair<int, std::pair<int, int>> fp, std::pair<int, std::pair<int, int>> sp) 
+        {
+            auto [sf, pf] = fp;
+            auto [ss, ps] = sp;
+            
+            return sf < ss;
+        });
 
+        for (auto [s, par] : psum) 
+        {
+            auto [x, y] = par;
+            // std::cout << s << " {" << x << " " << y << "}\n";
+            path.push_back(Point(x, y));
+        }
     }
 };
 
 
 
 int main() {
-    int n = 1<<6;
-    ZCurve curve(n);
+    int n = 1<<5;
+    GrayCurve curve(n);     // HilbertCurve, ZCurve
     curve.run();
     std::vector<Point> points = curve.getPoints();
     // for (Point& p : points)
@@ -207,7 +234,7 @@ int main() {
     int height = 800;
 
     CurveDrawer drawer(width, height);
-    double scaleFactor = (width * 0.02) ;
+    double scaleFactor = (width * 0.02) ;       // 0.02, 0.5, 0.05
     for (auto& point : points)
         point = point * scaleFactor + Point(width * 0.05, height * 0.05);
     drawer.draw(points);

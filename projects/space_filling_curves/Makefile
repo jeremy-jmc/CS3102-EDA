@@ -1,6 +1,6 @@
 # Variables
 CXX = g++
-CXXFLAGS = -Wall -std=c++11
+CXXFLAGS = -Wall -std=c++17
 SFML_LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 OUTPUT = space_filling
 BUILDDIR = build
