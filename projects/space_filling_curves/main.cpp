@@ -126,7 +126,7 @@ int morton(int x, int y)
 // Crear la clase para Z-curve
 class ZCurve {
 public:
-    ZCurve(int n) : n(n) {}
+    ZCurve(int n) : n(1<<n) {}
 
     std::vector<Point> getPoints() { return path; }
 
@@ -179,7 +179,7 @@ int to_gray_code(int n) {
 
 class GrayCurve {
 public:
-    GrayCurve(int n) : n(n) {}
+    GrayCurve(int n) : n(1<<n) {}
 
     std::vector<Point> getPoints() { return path; }
 
@@ -223,7 +223,7 @@ private:
 
 
 int main() {
-    int n = 1<<5;
+    int n = 5;
     GrayCurve curve(n);     // HilbertCurve, ZCurve
     curve.run();
     std::vector<Point> points = curve.getPoints();
