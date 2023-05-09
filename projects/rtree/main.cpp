@@ -8,9 +8,30 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <utility>
+#include <queue>
 
-const int M = 3;
-const int m = 2;
+template <typename T, typename V>
+std::ostream &operator<<(std::ostream &os, std::pair<T, V> pr)
+{
+    os << "{" << pr.first << ", " << pr.second << "}";
+    return os;
+}
+
+template <template <class, class> class Container, typename T>
+std::ostream &operator<<(std::ostream &os, const Container<T, std::allocator<T>> &container)
+{
+    os << "[ ";
+    for (auto el : container)
+        os << el << " ";
+    os << "]";
+    return os;
+}
+
+
+int SCALAR = 20;
+const int M = 3;    // 3
+const int m = 2;    // 2
 const double EPS = 1e-9;
 const int NUM_DIMENSIONS = 2;
 const double INF = std::numeric_limits<double>::max(), NINF = std::numeric_limits<double>::lowest();
@@ -36,11 +57,28 @@ struct Point
 
 std::ostream& operator<<(std::ostream& os, Point& p) 
 {   
-    os << "(";
+    os << "( ";
     for (int i = 0; i < NUM_DIMENSIONS; i++)
         os << p.coords[i] << " ";
     os << ")";
     return os;
+}
+
+
+static double point_distance_squared(const Point& p1, const Point& p2) 
+{   // get the cuadratic distance between two points. x^2 + y^2 ... + n^2
+    double distance_squared = 0;
+    for (int d = 0; d < NUM_DIMENSIONS; d++) 
+    {
+        double diff = p1.coords[d] - p2.coords[d];
+        distance_squared += diff * diff;
+    }
+    return distance_squared;
+}
+
+static double point_distance(const Point& p1, const Point& p2) 
+{   // sqrt(x^2 + y^2 ... + n^2)
+    return std::sqrt(point_distance_squared(p1, p2));
 }
 
 // * MINIMUM BOUNDING BOX
@@ -73,12 +111,27 @@ struct MBB {
         return expansion;
     }
 
+    double expansion_needed(const MBB& mbb)
+    {
+        // TODO
+        return this->area() - mbb.area();
+    }
+
     void expand(const Point& p) 
     {   // performs like "insert"
         for (int d = 0; d < NUM_DIMENSIONS; d++) 
         {
             lower.coords[d] = std::min(lower.coords[d], p.coords[d]);
             upper.coords[d] = std::max(upper.coords[d], p.coords[d]);
+        }
+    }
+
+    void expand(const MBB& mbb)
+    {
+        for (int d = 0; d < NUM_DIMENSIONS; d++) 
+        {
+            lower.coords[d] = std::min(lower.coords[d], mbb.lower.coords[d]);
+            upper.coords[d] = std::max(upper.coords[d], mbb.upper.coords[d]);
         }
     }
 
@@ -89,28 +142,39 @@ struct MBB {
             area *= upper.coords[d] - lower.coords[d];
         return area;
     }
+
+    double distance(const Point& p)
+    {
+        // inside the bounding box
+        if (p.coords[0] >= lower.coords[0] && p.coords[0] <= upper.coords[0] &&
+            p.coords[1] >= lower.coords[1] && p.coords[1] <= upper.coords[1])
+            return 0;
+        // outside the bounding box
+        // case VIP zone
+        if (p.coords[0] >= lower.coords[0] && p.coords[0] <= upper.coords[0])
+            return std::min(std::abs(p.coords[1] - lower.coords[1]), std::abs(p.coords[1] - upper.coords[1]));
+        if (p.coords[1] >= lower.coords[1] && p.coords[1] <= upper.coords[1])
+            return std::min(std::abs(p.coords[0] - lower.coords[0]), std::abs(p.coords[0] - upper.coords[0]));
+        // case Pythagorean
+
+        std::vector<Point> corners = {
+            Point(lower.coords[0], lower.coords[1]),
+            Point(lower.coords[0], upper.coords[1]),
+            Point(upper.coords[0], lower.coords[1]),
+            Point(upper.coords[0], upper.coords[1])
+        };
+
+        double dist = INF;
+        for (const Point& c : corners)
+            dist = std::min(dist, point_distance(p, c));
+        return dist;
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, MBB& mbb) 
 {
     os << "MBB: " << mbb.lower << " " << mbb.upper;
     return os;
-}
-
-static double point_distance_squared(const Point& p1, const Point& p2) 
-{   // get the cuadratic distance between two points. x^2 + y^2 ... + n^2
-    double distance_squared = 0;
-    for (int d = 0; d < NUM_DIMENSIONS; d++) 
-    {
-        double diff = p1.coords[d] - p2.coords[d];
-        distance_squared += diff * diff;
-    }
-    return distance_squared;
-}
-
-static double point_distance(const Point& p1, const Point& p2) 
-{   // sqrt(x^2 + y^2 ... + n^2)
-    return std::sqrt(point_distance_squared(p1, p2));
 }
 
 // * RTREE NODE
@@ -123,89 +187,108 @@ struct RTreeNode
 
     // * GETTERS BY REFERENCE
     const std::vector<Point>& points() const { return points_; }
-    const std::vector<std::shared_ptr<RTreeNode>>& children() const { return children_; }
+    const std::vector<RTreeNode*>& children() const { return children_; }
     const MBB& mbb() const { return mbb_; }
 
     
     bool is_leaf() const { return is_leaf_; }
 
-    bool overflow() const 
+    bool is_full() const 
     { 
         if (this->is_leaf())
-            return points_.size() > M;
+            return points_.size() >= M;
         return children_.size() > M;
     }
 
-    std::shared_ptr<RTreeNode> insert(const Point& p);
+    void insert(const Point& p);
     
     static SplitType split_type;
 
 // atributes
     bool is_leaf_;
     MBB mbb_;
-    std::shared_ptr<RTreeNode> parent_ = nullptr;
+    RTreeNode* parent_ = nullptr;
     std::vector<Point> points_;
-    std::vector<std::shared_ptr<RTreeNode>> children_;
+    std::vector<RTreeNode*> children_;
 
     void split();
     void linear_split();
     void quadratic_split();
     void brownie_split();
-    std::shared_ptr<RTreeNode> choose_subtree(const Point& p) const;
+    RTreeNode* choose_subtree(const Point& p) const;
     double compute_overlap(const MBB& mbb1, const MBB& mbb2) const;
 };
+
+Point centroid(std::vector<Point>& points)
+{
+    Point centroid(0, 0);
+    for (auto p : points)
+    {
+       for  (int i = 0; i < NUM_DIMENSIONS; i++)
+            centroid.coords[i] += p.coords[i]; 
+    }
+    for  (int i = 0; i < NUM_DIMENSIONS; i++)
+        centroid.coords[i] /= points.size();
+    return centroid;
+}
+
+static double rectangle_distance(RTreeNode* r1, RTreeNode* r2)
+{   // centroid criteria
+    if (r1->is_leaf_ && r2->is_leaf_)
+    {
+        Point c1 = centroid(r1->points_);
+        Point c2 = centroid(r2->points_);
+        
+        return point_distance(c1, c2);
+    }
+    else {
+        Point c1(
+            (r1->mbb_.lower.coords[0] + r1->mbb_.upper.coords[0]) / 2,
+            (r1->mbb_.lower.coords[1] + r1->mbb_.upper.coords[1]) / 2
+        );
+        Point c2(
+            (r2->mbb_.lower.coords[0] + r2->mbb_.upper.coords[0]) / 2,
+            (r2->mbb_.lower.coords[1] + r2->mbb_.upper.coords[1]) / 2
+        );
+        return point_distance(c1, c2);
+    }
+}
 
 RTreeNode::RTreeNode(bool is_leaf) : is_leaf_(is_leaf) 
 {
     // ? why initialize the MBB if it's a leaf?
     if (is_leaf)
         mbb_ = MBB();
+    this->parent_ = nullptr;
 }
 
-std::shared_ptr<RTreeNode> RTreeNode::insert(const Point& p) 
+std::ostream& operator<<(std::ostream& os, RTreeNode& node)
 {
-    if (is_leaf_) 
+    os << node.mbb_ << " leaf: " << std::boolalpha << node.is_leaf_;
+    os << " points: " << node.points_.size();
+    os << " children: " << node.children_.size() << std::endl;
+    if (node.is_leaf_)
     {
-        points_.push_back(p);
-        mbb_.expand(p);
-
-        // If the current node is a leaf and has no parent, create a new parent and expand the MBB
-        if (this->parent_ == nullptr)
-        {   // If the node is root
-            this->parent_ = std::make_shared<RTreeNode>(RTreeNode(false));
-            for (const Point& point : points_)
-                this->parent_->expand(point);
-            
-            // Check if the node overflows
-            if (points_.size() > M)
-                split();
-            this = this->parent_;
-        }
-        else 
-        {
-            // Check if the node overflows
-            if (points_.size() > M)
-                split();
-        }
-    } else
-    {
-        // If the current node is not a leaf, choose the best subtree to insert the point
-        std::shared_ptr<RTreeNode> subtree = choose_subtree(p);
-        subtree->insert(p);
-        // After insert the point, update the MBB
-        mbb_.expand(p);
+        os << "\t\t";
+        os << node.points_;
+        os << std::endl;
     }
-    
-    return std::make_shared<RTreeNode>(*this);
+    return os;
 }
 
-std::shared_ptr<RTreeNode> RTreeNode::choose_subtree(const Point& p) const 
+void RTreeNode::insert(const Point& p)
+{
+    points_.push_back(p);
+    mbb_.expand(p);
+}
+
+RTreeNode* RTreeNode::choose_subtree(const Point& p) const 
 {   // choose the subtree that requires minimum expansion, else the one with minimum area
-    std::shared_ptr<RTreeNode> best_child;
+    RTreeNode* best_child = nullptr;
     double min_expansion = INF;
 
     // -------
-    for (const std::shared_ptr<RTreeNode>& child : this->children_) 
+    for (RTreeNode* child : this->children_) 
     {
         double expansion = child->mbb_.expansion_needed(p);
         if (expansion < min_expansion) 
@@ -245,19 +328,66 @@ void RTreeNode::split()
 
 SplitType RTreeNode::split_type;
 
+std::pair<int, int> pick_two(RTreeNode* node)
+{
+    RTreeNode *f = nullptr, *s = nullptr;
+    RTreeNode *left, *right, *up, *down;
+    int idx_left, idx_right, idx_up, idx_down;
+    for (int i = 0; i < node->children_.size(); i++)
+    {   // RTreeNode *child : node->children_
+        if(node->children_[i]->mbb_.lower.coords[0] == node->mbb_.lower.coords[0])
+        {
+            left = node->children_[i]; 
+            idx_left = i;
+        }
+        if(node->children_[i]->mbb_.upper.coords[0] == node->mbb_.upper.coords[0])
+        {
+            right = node->children_[i];
+            idx_right = i;
+        }   
+        if(node->children_[i]->mbb_.lower.coords[1] == node->mbb_.lower.coords[1])
+        {
+            down = node->children_[i]; 
+            idx_down = i;
+        }
+        if(node->children_[i]->mbb_.upper.coords[1] == node->mbb_.upper.coords[1])
+        {
+            up = node->children_[i]; 
+            idx_up = i;
+        }
+            
+    }
+    double x_ratio, y_ratio;
+    x_ratio = (
+        right->mbb_.lower.coords[0] - left->mbb_.upper.coords[0]
+    ) / (
+        right->mbb_.upper.coords[0] - left->mbb_.lower.coords[0]
+    );
+    y_ratio = (
+        up->mbb_.lower.coords[1] - down->mbb_.upper.coords[1]
+    ) / (
+        up->mbb_.upper.coords[1] - down->mbb_.lower.coords[1]
+    );
+    if(x_ratio > y_ratio)
+        return {idx_left, idx_right};
+    else
+        return {idx_down, idx_up};
+}
+
 void RTreeNode::linear_split() 
 {
-    // -------
+    if (!this->is_leaf_)
+        throw std::runtime_error("trying to split a non-leaf node as a leaf node");
+
     std::random_device rd;
     std::mt19937 gen(rd());
+    // * LINEAR SPLIT
+    // std::cout << "splitting leaf" << std::endl;
     std::uniform_int_distribution<> distrib(0, points_.size() - 1);
-
-    if ()
-
-    // choose one random point, and then the farthest point from it
+    
+    // * 1. Choose two seeds
     int idx_f = distrib(gen), idx_s;
     Point f = points_[idx_f], s;
-
     double dis = -1;
     for (int i = 0; i < points_.size(); i++)
         if (idx_f != i && point_distance(points_[i], f) > dis)
@@ -265,42 +395,151 @@ void RTreeNode::linear_split()
             idx_s = i;
             dis = point_distance(points_[i], f);
         }
-    s = points_[idx_s];
-    std::cout << "f: " << f << " s: " << s << std::endl;
+    s = points_[idx_s]; 
+    // std::cout << "\tf: " << f << " s: " << s << std::endl;
     
-    // split the node in two children
-    std::shared_ptr<RTreeNode> first_child = std::make_shared<RTreeNode>(true);
-    std::shared_ptr<RTreeNode> second_child = std::make_shared<RTreeNode>(true);
+    RTreeNode* brother = new RTreeNode(true);
+    brother->parent_ = this->parent_;
+    std::vector<Point> points_aux = this->points_;
+    this->points_ = std::vector<Point>();
+    this->mbb_ = MBB();
 
-    first_child->insert(f);
-    second_child->insert(s);
+    this->insert(f);
+    brother->insert(s);
     
-    // reassign points
-    for (int i = 0; i < points_.size(); i++)
+    // std::cout << "\tleaf: " << *this;
+    // std::cout << "\tbrother: " << *brother;
+
+    // * 2. Assign the remaining points to the seed that requires less area expansion
+    for (int i = 0; i < points_aux.size(); i++)
         if (i != idx_f && i != idx_s)
         {
-            if (first_child->mbb_.expansion_needed(points_[i]) < second_child->mbb_.expansion_needed(points_[i]))
+            if (this->mbb_.expansion_needed(points_aux[i]) < brother->mbb_.expansion_needed(points_aux[i]))
             {
-                if (first_child->points_.size() >= m)
-                    second_child->insert(points_[i]);
+                if (this->points_.size() >= m)
+                    brother->insert(points_aux[i]);
                 else
-                    first_child->insert(points_[i]);
+                    this->insert(points_aux[i]);
             }
             else
             {
-                if (second_child->points_.size() >= m)
-                    first_child->insert(points_[i]);
+                if (brother->points_.size() >= m)
+                    this->insert(points_aux[i]);
                 else
-                    second_child->insert(points_[i]);
+                    brother->insert(points_aux[i]);
             }
         }
-    
-    this->points_ = std::vector<Point>();
-    this->children_.push_back(first_child);
-    this->children_.push_back(second_child);
 
-    this->is_leaf_ = false;
-    // -------
+    // * 7. Update the parent node
+    if (this->parent_ == nullptr)
+        throw std::runtime_error("The node has no parent");
+    
+    // std::cout << " >>> parent this: " << *this->parent_;
+    // std::cout << " >>> parent brother: " << *brother->parent_;
+    brother->parent_->children_.push_back(brother);
+}
+
+RTreeNode* linear_split_internal(RTreeNode* node)
+{
+    if (node->is_leaf())
+        throw std::runtime_error("trying to split a leaf node as a internal node\n");
+    
+    // std::cout << "splitting internal node" << std::endl;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    // std::cout << node->points_ << std::endl;
+    std::uniform_int_distribution<> distrib(0, node->children_.size() - 1);
+    
+    // choose two random children (MBBs), and then the farthest one from them
+    int idx_f = distrib(gen), idx_s;       // 
+    RTreeNode *f, *s;
+    auto [fi, se] = pick_two(node);
+    // DUMMY
+    f = node->children_[idx_f];
+    double dis = -1;
+    for (int i = 0; i < node->children_.size(); i++)
+    {
+        // std::cout << *node->children_[i] << std::endl;
+        // std::cout << rectangle_distance(node->children_[i], f) << std::endl;
+        if (idx_f != i && rectangle_distance(node->children_[i], f) > dis)
+        {
+            idx_s = i;
+            dis = rectangle_distance(node->children_[i], f);
+        }
+    }
+    s = node->children_[idx_s];
+    // std::cout << "\tf: " << *f << "\ts: " << *s;
+    // ENDDUMMY
+    idx_f = fi;
+    idx_s = se;
+    f = node->children_[idx_f];
+    s = node->children_[idx_s];
+
+    // give the half of children to the brother
+    RTreeNode* brother = new RTreeNode(false);
+    std::vector<RTreeNode*> children_aux = node->children_;
+    node->children_ = std::vector<RTreeNode*>();
+    node->mbb_ = MBB();
+
+    node->children_.push_back(f);
+    node->mbb_.expand(f->mbb_);
+
+    brother->children_.push_back(s);
+    brother->mbb_.expand(s->mbb_);
+
+    // reassign the children
+    // std::cout << "reassign children\n";
+    for (int i = 0; i < children_aux.size(); i++)
+        if (i != idx_f && i != idx_s)
+        {
+            // std::cout << "\t\t" << i << " -> " << *children_aux[i];
+            if (node->mbb_.expansion_needed(children_aux[i]->mbb_) < brother->mbb_.expansion_needed(children_aux[i]->mbb_))
+            {
+                if (node->children_.size() >= m)
+                {
+                    brother->children_.push_back(children_aux[i]);
+                    brother->mbb_.expand(children_aux[i]->mbb_);
+                }
+                else
+                {
+                    node->children_.push_back(children_aux[i]);
+                    node->mbb_.expand(children_aux[i]->mbb_);
+                }   
+            }
+            else
+            {
+                if (brother->children_.size() >= m)
+                {
+                    node->children_.push_back(children_aux[i]);
+                    node->mbb_.expand(children_aux[i]->mbb_);
+                }
+                else
+                {
+                    brother->children_.push_back(children_aux[i]);
+                    brother->mbb_.expand(children_aux[i]->mbb_);
+                }   
+            }
+        }
+
+    // std::cout << "\tnode: " << *node;
+    // std::cout << "\tbrother: " << *brother;
+    if (node->parent_ == nullptr)
+    {
+        node->parent_ = new RTreeNode(false);
+        node->parent_->children_.push_back(node);
+    }
+    brother->parent_ = node->parent_;
+    brother->parent_->children_.push_back(brother);
+
+    for (RTreeNode* c : brother->children_)
+        c->parent_ = brother;
+    
+    for (RTreeNode* c : node->parent_->children_)
+        node->parent_->mbb_.expand(c->mbb_);
+    
+    // std::cout << " >>> parent this: " << *node->parent_;
+    // std::cout << " >>> parent brother: " << *brother->parent_;
+    return node->parent_;
 }
 
 void RTreeNode::quadratic_split()
@@ -323,25 +562,94 @@ class RTree
 {
 public:
     RTree(SplitType split_type = LINEAR_SPLIT);
-    const RTreeNode* get_root() const { return root_.get(); }
+    RTreeNode* get_root() const { return root_; }
     void draw(const RTreeNode* node, SDL_Renderer* renderer) const;
     void print_ascii() const;
-    void insert(const Point& p);
-
+    void insert(Point p);
+    void insert_non_full(RTreeNode* node, Point p);
+    std::vector<std::pair<double, Point>> knn(Point p, int k);
 private:
-    std::shared_ptr<RTreeNode> root_;
+    RTreeNode* root_;
     void print_ascii_node(const RTreeNode* node, int depth = 0) const;
 };
 
 RTree::RTree(SplitType split_type) 
 {
     RTreeNode::split_type = split_type;
-    root_ = std::make_shared<RTreeNode>(true);
+    root_ = new RTreeNode(true);
 }
 
-void RTree::insert(const Point& p) 
+void RTree::insert(Point p) 
 {
-    root_ = root_->insert(p);
+    RTreeNode* r = root_;
+    bool flag = true;
+    if (r->is_full())
+    {
+        // std::cout << "\t\troot is full" << std::endl;
+        RTreeNode* new_root = new RTreeNode(false);
+        new_root->mbb_ = r->mbb_;
+        new_root->children_.push_back(r);
+        
+        r->parent_ = new_root;
+        if (new_root->children_[0]->is_leaf())
+        {
+            new_root->children_[0]->insert(p);
+            flag = false;
+        }
+        new_root->children_[0]->split();
+        this->root_ = new_root;
+        // std::cout << "\t\troot is now " << *this->root_ << std::endl;
+    }
+
+    r = this->root_;
+    r->mbb_.expand(p);
+
+    if (flag)
+    {
+        // std::cout << "\t\tinserting " << p << std::endl;
+        insert_non_full(r, p);
+    }
+    while (this->root_->parent_)    
+        this->root_ = this->root_->parent_;
+}
+
+void RTree::insert_non_full(RTreeNode* node, Point p)
+{
+    // std::cout << "\tchildren size: " << node->children_.size() << std::endl;
+    
+    if (node->is_leaf())
+    {
+        node->points_.push_back(p);
+        node->mbb_.expand(p);
+    }
+    else 
+    {
+        // std::cout << "\t\t\tfind non-full subtree" << std::endl;
+        node->mbb_.expand(p);
+        RTreeNode* subtree = node->choose_subtree(p);
+        subtree->mbb_.expand(p);
+        if (subtree->is_full() && subtree->is_leaf())
+        {
+            // std::cout << "case #1\n";
+            subtree->points_.push_back(p);           
+            subtree->split();
+        }
+        else if (subtree->is_full())
+        {
+            // std::cout << "case #2\n";
+            insert_non_full(subtree, p);
+        }
+        else
+        {
+            // std::cout << "case #3\n";
+            insert_non_full(subtree, p);
+        }
+
+        if (node->is_full() && !node->is_leaf())
+            node->parent_ = linear_split_internal(node);
+    }
+    if (node->is_full() && !node->is_leaf())
+        node->parent_ = linear_split_internal(node);
 }
 
 void RTree::draw(const RTreeNode* node, SDL_Renderer* renderer) const 
@@ -376,12 +684,12 @@ void RTree::draw(const RTreeNode* node, SDL_Renderer* renderer) const
         }
     }
     for (const auto& child : node->children())
-        draw(child.get(), renderer);
+        draw(child, renderer);
 }
 
 void RTree::print_ascii() const 
 {
-    print_ascii_node(root_.get());
+    print_ascii_node(root_);
 }
 
 void RTree::print_ascii_node(const RTreeNode* node, int depth) const 
@@ -389,64 +697,146 @@ void RTree::print_ascii_node(const RTreeNode* node, int depth) const
     if (node == nullptr)
         return;
 
-    std::string indentation(depth * 2, ' ');
+    std::string indentation(depth, '\t');
 
-    std::cout << indentation << "MBB: ("
+    std::cout << depth << ": "
+              << indentation << "MBB: ("
               << node->mbb().lower.coords[0] << ", " << node->mbb().lower.coords[1] << "), ("
-              << node->mbb().upper.coords[0] << ", " << node->mbb().upper.coords[1] << ")\n";
+              << node->mbb().upper.coords[0] << ", " << node->mbb().upper.coords[1] << ") -> ";
+
+    std::cout << "is leaf: " << std::boolalpha << node->is_leaf_;
+    if (node->parent_)
+        std::cout << "\t" << node->parent_->mbb_ << std::endl;
 
     if (node->is_leaf()) {
         std::cout << indentation << "Points:\n";
         for (const Point& p : node->points())
             std::cout << indentation << "  (" << p.coords[0] << ", " << p.coords[1] << ")\n";
     } else {
-        std::cout << indentation << "Children:\n";
+        std::cout << indentation << "Children: " << node->children().size() << std::endl;
         for (const auto& child : node->children())
-            print_ascii_node(child.get(), depth + 1);
+            print_ascii_node(child, depth + 1);
     }
 }
 
+std::vector<std::pair<double, Point>> RTree::knn(Point p, int k)
+{
+    std::vector<std::pair<double, Point>> result;
+    auto cmp = [](std::pair<double, RTreeNode*> left, std::pair<double, RTreeNode*> right) 
+    {
+        return left.first > right.first;
+    };
 
-// ! MAIN MODULE
+    std::priority_queue<
+        std::pair<double, RTreeNode*>,
+        std::vector<std::pair<double, RTreeNode*>>,
+        decltype(cmp)
+    > pq(cmp);
 
-int main() {
+    for (RTreeNode* child : root_->children())
+        pq.push(std::make_pair(child->mbb_.distance(p), child));
+
+    while (!pq.empty())
+    {
+        auto [curr_dis, node] = pq.top();
+        pq.pop();
+
+        if (node->is_leaf_)
+        {
+            if (node->points_.size() == 1)
+                result.push_back({curr_dis, node->points_[0]});
+            else {
+                for (const Point& point : node->points_)
+                {
+                    RTreeNode* peruano = new RTreeNode(true);
+                    peruano->insert(point);
+                    pq.push(std::make_pair(
+                        point_distance(p, point),
+                        peruano
+                    ));
+                }
+            }
+        }
+        else
+            for (RTreeNode* child : node->children())
+                pq.push(std::make_pair(child->mbb_.distance(p), child));
+
+        if (result.size() == k)
+            break;
+    }
+
+    return result;
+}
+
+// ! TESTS
+
+int test_rtree_build()
+{
     srand(time(NULL));
+    SCALAR = 20;
     RTree rtree(LINEAR_SPLIT);
     
-    int window_width = 800 / 2.5;
-    int window_height = 600 / 2.5;
+    int window_width = 800;
+    int window_height = 600;
 
     // Insert points
-    // for (int i = 0; i < 20; ++i)
-    //     rtree.insert(Point(rand() % window_width, rand() % window_height));
 
-    rtree.insert(Point(7, 10));
-    rtree.insert(Point(9, 11));
-    rtree.insert(Point(3, 4));
-    rtree.insert(Point(4, 5));
-    rtree.insert(Point(1, 1));
-    rtree.insert(Point(12, 2));
-    rtree.insert(Point(14, 15));
-    rtree.insert(Point(16, 3));
-    rtree.insert(Point(13, 13));
-    rtree.insert(Point(5, 6));
-    rtree.insert(Point(8, 9));
-    rtree.insert(Point(15, 12));
-    
-    // rtree.insert(Point(  0,   0));
-    // rtree.insert(Point( 10,  10));
-    // rtree.insert(Point( 20,  20));
-    // rtree.insert(Point( 30,  30));
-    // rtree.insert(Point( 40,  40));
-    // rtree.insert(Point( 50,  50));
-    // rtree.insert(Point( 60,  60));
-    // rtree.insert(Point( 70,  70));
-    // rtree.insert(Point( 80,  80));
-    // rtree.insert(Point( 90,  90));
-    // rtree.insert(Point(100, 100));
+    int test = 2;
+
+    if (test == 1)
+    {
+        for (int i = 0; i < 100; ++i)
+            rtree.insert(Point(rand() % window_width, rand() % window_height));
+    }
+    else if (test == 2) {
+        std::vector<Point> pt = {
+            Point(3, 4), Point(7, 10), Point(14, 15), 
+            Point(9, 11), Point(16, 3), Point(13, 13), 
+            Point(4, 5), Point(1, 1), Point(12, 2), 
+            Point(5, 6), Point(8, 9), Point(17, 1),  
+            Point(2, 2), Point(11, 14), Point(14, 3), 
+            Point(15, 12), Point(16, 14), Point(11, 12),
+            Point(2, 3),  Point(6, 12), Point(8, 7),
+            Point(10, 4), Point(11, 11), Point(4, 5),
+            Point(5, 2), Point(9, 9), Point(13, 8),
+            Point(15, 2), Point(16, 10), Point(12, 14),
+            Point(14, 4), Point(17, 16), Point(1, 9),
+            Point(7, 15), Point(3, 1), Point(10, 1),
+            Point(6, 8), Point(10, 3), Point(2, 7),
+            Point(5, 3), Point(9, 6), Point(13, 7),
+            Point(11, 10), Point(14, 5), Point(16, 9),
+            Point(8, 5), Point(12, 12), Point(17, 14),
+            Point(4, 9), Point(15, 3), Point(7, 13),
+            Point(10, 15), Point(13, 2), Point(3, 1),
+        };
+        int i = 1;
+        for (auto& p : pt)
+        {
+            for (auto& c : p.coords)
+                c *= SCALAR;
+            // std::cout << ">>>> " << i << ". INSERT " << p << std::endl;
+            rtree.insert(p);
+            // std::cout << "  >>> RTREE\n";
+            // rtree.print_ascii();
+            // std::cout << std::endl;
+            i++;
+        }
+            
+    } else {
+        rtree.insert(Point(  0,   0));
+        rtree.insert(Point( 10,  10));
+        rtree.insert(Point( 20,  20));
+        rtree.insert(Point( 30,  30));
+        rtree.insert(Point( 40,  40));
+        rtree.insert(Point( 50,  50));
+        rtree.insert(Point( 60,  60));
+        rtree.insert(Point( 70,  70));
+        rtree.insert(Point( 80,  80));
+        rtree.insert(Point( 90,  90));
+        rtree.insert(Point(100, 100));
+    }
     
     printf("Done\n");
-
     rtree.print_ascii();
 
     // Initialize SDL
@@ -460,7 +850,7 @@ int main() {
     SDL_Window* window = SDL_CreateWindow(
         "R-Tree Visualization", 
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-        window_width, window_height, 
+        window_width*1.1, window_height*1.1, 
         SDL_WINDOW_SHOWN
     );
 
@@ -511,6 +901,81 @@ int main() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-
     return 0;
 }
+
+void test_mbb()
+{
+    MBB mbb(Point(0, 0), Point(5, 5));
+    std::vector<Point> points = {
+        Point(2, 2),
+        Point(3, 6), Point(6, 3), Point(-2, 3), Point(3, -1),
+        Point(-1, 6), Point(6, 6), Point(-1, -1), Point(6, -1)
+    };
+
+    // CASO VIP
+    for (const Point& p : points)
+        std::cout << mbb.distance(p) << std::endl;
+}
+
+void test_knn()
+{
+    srand(time(NULL));
+    SCALAR = 20;
+    RTree rtree(LINEAR_SPLIT);
+    
+    int window_width = 800;
+    int window_height = 600;
+    
+    int n_nodos = 30;
+    std::vector<Point> points;
+    for (int i = 0; i < n_nodos; ++i)
+        points.push_back(Point(rand() % window_width, rand() % window_height));
+    for (Point p : points)
+        rtree.insert(p);
+
+    std::cout << "Done\n";
+    rtree.print_ascii();
+    
+    Point query_point = Point(rand() % window_width, rand() % window_height);
+    int k = 5;
+    std::cout << "\tquery point -> " << query_point << std::endl;
+    std::cout << "\tK -> " << k << std::endl;
+    std::cout << "RESULT :" <<rtree.knn(query_point, k) << std::endl;
+
+    std::cout << "one vs ALL\n";
+    
+    auto cmp = [](std::pair<double, RTreeNode*> left, std::pair<double, RTreeNode*> right) 
+    {
+        return left.first > right.first;
+    };
+    std::priority_queue<
+        std::pair<double, RTreeNode*>,
+        std::vector<std::pair<double, RTreeNode*>>,
+        decltype(cmp)
+    > pq(cmp);
+    for (int i = 0; i < n_nodos; i++)
+    {
+        RTreeNode* aux = new RTreeNode(true);
+        aux->insert(points[i]);
+        pq.push(std::make_pair(point_distance(query_point, points[i]), aux));
+    }
+    while (!pq.empty())
+    {
+        auto [dis, ptr_node] = pq.top();
+        pq.pop();
+        std::cout << " {" << dis << ", " << ptr_node->points_[0] << "} ";
+    }   std::cout << std::endl;
+}
+
+// ! MAIN MODULE
+
+int main() 
+{
+    std::cout << "\tTEST KNN\n";
+    test_knn();
+    std::cout << "\tTEST GRAFICOS\n";
+    test_rtree_build();
+    return 0;
+}
+

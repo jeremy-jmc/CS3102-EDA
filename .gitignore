@@ -37,3 +37,6 @@
 input.txt
 output.txt
 *.zip
+output
+input
+*.out
