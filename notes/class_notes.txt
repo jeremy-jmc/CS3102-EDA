@@ -521,3 +521,98 @@ C12
 			seleccione 2 objetos como semillas
 			
 
+C13
+Distancia entre objeto y punto
+Distancia entre objeto y objeto
+
+Distancia entre punto y recta(vector normal/perpendicular)
+	Zona A, Zona B, Zona VIP
+Branch and Bound
+	Distancia al rectangulo del RTree
+		Bajar por el que tiene la menor distancia
+Best First
+	Bajas por tu priority_queue
+	
+
+C14
+	Representacion de objetos
+		Representacion de objetos espaciales
+			Dividir el objeto
+			Una malla, un conjunto de puntos, una propiedad en cada posicion del espacio, separar la definicion de caras
+			Separar el objeto geometrico en cara, vertice, arista
+		
+			Object based decomposition
+			Image based decomposition
+
+			Location query
+				Retorna objeto
+			Feature query
+				En que ubicacion se encuentra una rosa
+				Retorna posicion
+			Pixel/Voxel
+
+			Starcraft
+
+			De analogico a digital
+		Interior-Based Representations
+			Como dividir el espacio
+				Triangulos, Hexagonos
+			Representacion Explicita
+				Lista de posiciones
+			Representacion Implicita
+				Linkear cada celda
+
+			Celdas y mosaicos
+			Poligonal
+				Atomic
+					Regular (equilatero [angulos y lados])
+					Tipos de particiones regulares
+					[4^4] [3^6] [6^3]
+
+					isoedricos
+						equivalentes en el mismo grupo de simetria
+
+						triangulos isoedricos
+						trapecios no-isoedricos
+					limitado/ilimitado
+						si pones una recta encima de una arista y siempre cruza vertices y aristas es ilimitado
+					adyacencia uniforme
+						arista o vertice vecino
+						2
+						3
+						7
+						para el quiz
+						1
+				Molecular
+			NoPoligonal
+		Boundary-Based Representations
+		Space-filling curves
+
+C15
+	Phillip Cantor
+		Equivalencia de infinitos
+			R1, R2 misma cantidad de puntos
+			Mapear entre un conjunto y otro (isomorfico)
+			Correspondencia entre espacio R1 y R2
+	Peano
+		Funcion continua y q no se corte
+		Relacionar cuadrado con una recta
+		Fractales
+			Mates Mike: El Copo de Nieve de Koch
+			3Blue1Brown
+		Llenar un infinito con otro infinito
+		Mapear espacios continuos en 1 plano
+	Hilbert
+		Laplace, Z, Fourier
+		e^(i * pi) = 1
+		e^(i * theta)
+	Moore
+	Morton 
+		Curve
+
+	ab op cd = acbd
+	binary -> grey
+	grey -> binary
+
+	z-order -> xy
+	xy -> z-order
