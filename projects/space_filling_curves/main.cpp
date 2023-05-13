@@ -176,6 +176,12 @@ int to_gray_code(int n) {
     return n ^ (n >> 1);
 }
 
+int rev_g (int g) {
+  int n = 0;
+  for (; g; g >>= 1)
+    n ^= g;
+  return n;
+}
 
 class GrayCurve {
 public:
@@ -198,7 +204,7 @@ private:
         {
             for (int y = 0; y < n; y++)
             {   
-                auto sum = to_gray_code(morton(x, y));
+                auto sum = rev_g(morton(x, y));
                 // std::cout << x << " " << y << " -> " << sum << std::endl;
                 psum.push_back({sum, {x, y}});
             }
@@ -223,7 +229,7 @@ private:
 
 
 int main() {
-    int n = 5;
+    int n = 2;
     GrayCurve curve(n);     // HilbertCurve, ZCurve
     curve.run();
     std::vector<Point> points = curve.getPoints();
