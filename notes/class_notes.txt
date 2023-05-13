@@ -616,3 +616,12 @@ C15
 
 	z-order -> xy
 	xy -> z-order
+
+
+Hilbert R-Tree
+	Bulk rapido
+	MBB representado por centroide
+	Usar el orden de Hilbert (1D) para agrupar los puntos
+	Pedir ayuda al hermano para redistribuir los datoss
+
+	Distancia euclidiana entre 2 puntos en un Hilber 3D
