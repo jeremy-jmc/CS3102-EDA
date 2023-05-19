@@ -625,3 +625,73 @@ Hilbert R-Tree
 	Pedir ayuda al hermano para redistribuir los datoss
 
 	Distancia euclidiana entre 2 puntos en un Hilber 3D
+
+Boundary-based representations
+	representar interaccion entre objetos.
+	Feature-query -> 
+	Location-query -> 
+
+	3 definiciones
+		objeto
+		constructive solid geometry (CSG)
+			descomponer en objetos
+			ray casting
+				puntos de foco (desde donde se manden rayos)
+				perspectiva (Aristoteles)
+
+				union, interseccion y diferencia de objetos
+				xor -> union de las diferencias
+		boundary model (BRep)
+			vertices + aristas + caras
+				indexadas en una estructura like: QuadTree
+
+			las fronteras de una cara no tienen por que estar conectadas
+			huecos es un punto importante de topologia
+				los objetos se define a partir de los huecos
+			
+			n-huecos
+			
+			caras adyacentes 
+			caras conectadas
+				no conectadas -> prisma con prisma adentro, carcasas, shells(conchas)
+
+			compactos: acotado (tiene limites: superior, inferior), se pueden definir limites, no es infinito
+			orientables: adelante y atras. defines que hay algo dentro y afuera
+				no-orientable: botella de Klein
+			2-manifold: 
+				manifold
+				superficie de una esfera
+
+				ejemplo terraplanista
+					localmente se aproxima a un espacio euclideano de 2 dimensiones
+					globalmente es una espacio de 3 dimensiones
+
+					maldicion de la dimensionalidad
+				
+				espacio topologico
+					conjunto abierto
+						[]
+						<>
+				Hausdorff
+					Cualquier punto del espacio topologico, puede generar 2 conjuntos abiertos que encierren 2 cualuquier puntos tal que esos conjuntos sean disjuntos
+					derivable o no derivable
+
+				2do numerable
+					un subconjunto generador de todo el espacio topologico
+					para un espacio R3 = { 
+						(0, 0, 1) * a +
+						(0, 1, 0) * b +
+						(1, 0, 0) * c
+						: para todo a, b, c posible
+					}
+
+				homeomorfismo
+					mantener la nocion de vecindad
+					pasar de cuadrado a esfera
+					la taza no es homeomorfa porque aplastandola peligra que juntes 2 puntos
+
+				winged edges
+					
+
+	
+				
