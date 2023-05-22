@@ -1,0 +1,6 @@
+Fast Approximate Nearest Neighbor Search With The Navigating Spreading-Out Graph
+
+Diagrama de Voronoi
+    estructura privilegiada de la geometria computacional
+https://www.youtube.com/watch?v=vt6KWW3Y9hM
+https://www.youtube.com/watch?v=ysLCuqcyJZA

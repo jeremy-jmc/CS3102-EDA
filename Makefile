@@ -4,5 +4,7 @@ bptree:
 	g++ b+tree.cpp -std=c++17 -o main && main
 quadtree:
 	g++ quadtree.cpp -std=c++17 -o main && main
+hilbert:
+	g++ hilbert.cpp -std=c++17 -o main && main
 clean:
 	del *.exe
