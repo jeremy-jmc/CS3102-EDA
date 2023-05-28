@@ -689,9 +689,47 @@ Boundary-based representations
 					mantener la nocion de vecindad
 					pasar de cuadrado a esfera
 					la taza no es homeomorfa porque aplastandola peligra que juntes 2 puntos
-
+				2-manifold
+					una arista tiene que pegar a lo mucho 2 caras
 				winged edges
-					
 
-	
-				
+caras, vertices y aristas					
+compacto
+shell
+orientable
+
+millones -> big data
+
+Alas y Celdas
+	Winged Edges
+		Half Edges
+	CCW wise
+
+	normal de un vertice
+		ponderada (ponderadas en funcion del area de la cara a la que el vertice pertenece)
+		promedio normal (combinacion de los 3 vectores)
+
+		area
+			determinante * 1/2		YT
+		volumen
+		normal de un vertice
+
+		matriz de rotacion (senos y cosenos)
+		ray tracing de una figura que se mueve
+	Voronoi Diagram
+		construccion
+		almacenar lineas en Region QuadTree/PM QuadTree
+
+		espacio metrico
+			manhattan
+			euclidean
+			chebyshev
+			minkowski
+
+Line
+MX
+Edge
+PM1
+PM2
+PM3
+PMR
