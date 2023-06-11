@@ -40,3 +40,7 @@ output.txt
 output
 input
 *.out
+
+data/
+pretrained/
+__pycache__/
