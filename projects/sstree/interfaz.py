@@ -9,6 +9,7 @@ from SSTree import SSTree
 from animals import Encoder
 
 class App:
+    """GUI for searching similar images"""
     def __init__(self, root, tree, model, device):
         self.root   = root
         self.tree   = tree
@@ -44,6 +45,7 @@ class App:
             label.grid(row=i//2, column=i%2)
 
     def browse_image(self):
+        """browse image and show it in the GUI"""
         file_path = filedialog.askopenfilename()
         self.input_path.set(file_path)
         image = Image.open(file_path)
@@ -54,6 +56,7 @@ class App:
         self.image_label.image = photo
 
     def search_similar(self):
+        """search for similar images and show them in the GUI"""
         embedding = self.get_image_embedding(self.input_path.get(), self.model)
         result : dict = self.tree.knn(embedding, 4)
         print(result)
@@ -101,8 +104,7 @@ if __name__ == "__main__":
     
     for param in model.parameters():
         param.requires_grad = False
-    print('a')
+    
     tree = SSTree(filename='tree.ss')
-    print('b')
     app = App(root, tree, model, device)
     root.mainloop()

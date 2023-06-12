@@ -13,3 +13,5 @@ SSTree
 - centroid is defined as the center of mass of a set of points, whose coordinates are the weighted sum of the point's coordinates.
     - is leaf: centroid of the points belonging to it.
     - is internal node: center of mass of the centroids of its children nodes
+
+Depth-First KNN

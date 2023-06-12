@@ -94,7 +94,7 @@ def main():
     gc.collect()
     torch.cuda.empty_cache()
     dataset = getDataset("../data/afhq")
-    tree = SSTree(M=75, m=25)     # 6 3     M >= 2m
+    tree = SSTree(M=75, m=25)     # 100 50      6 3     M >= 2m
     insertData2SSTree(dataset, tree, batch_size=200)
     tree.save("tree.ss")
 

@@ -1,8 +1,9 @@
+import heapq
 import inspect
 import numpy as np
 from scipy.spatial import distance
-import pickle
 import os
+import pickle
 import sys
 from typing import List
 from queue import PriorityQueue
@@ -10,7 +11,7 @@ from joblib import dump, load
 
 mm = None
 MM = None
-np.set_printoptions(precision=3)
+np.set_printoptions(precision=3, linewidth=100, suppress=True)
 
 
 class SSnode:
@@ -161,8 +162,8 @@ class SSnode:
         """inserts a point(with the data) in the tree"""
         # print(inspect.currentframe().f_code.co_name)
         if self.leaf:
-            if np.any(self.points == point):
-                return (None, None)
+            # if np.any(self.points == point):
+            #     return (None, None)
             
             self.points.append(point)
             self.data.append(data)
@@ -208,7 +209,15 @@ class SSnode:
                     nn_dist, nn = child.nearest_neighbor(target, nn_dist, nn)
         return nn_dist, nn
 
-
+    def get_data(self):
+        if self.leaf:
+            return list(zip(self.points, self.data))
+        else:
+            data = []
+            for child in self.children:
+                data += child.get_data()
+            return data
+    
     def printNode(self, indent=0):
         # print('\t' * indent, f'Centroid: {self.centroid}, Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
         print('\t' * indent, f'Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
@@ -272,9 +281,35 @@ class SSTree:
     
 
     # Depth-First K-Nearest Neighbor Algorithm
-    def knn(self, q, k=3):
-        # Completar aqui!
-        pass
+    def knn(self, query_point, k=3):
+        pq = []
+        res = []
+        dist_k = sys.maxsize
+        node = self.root
+        i = 0
+        
+        def dfs(curr_node) -> List[tuple]:
+            """depth-first search KNN"""
+            nonlocal dist_k, pq, query_point, k, i
+            if curr_node.leaf:
+                for point, data in zip(curr_node.points, curr_node.data):
+                    i += 1
+                    dist = distance.euclidean(point, query_point)
+                    if dist < dist_k or len(pq) < k:
+                        if len(pq) == k:
+                            pq = pq[:-1]
+                        # heapq.heappush(pq, (dist, data, point))
+                        pq.append((dist, data, point))
+                        pq = sorted(pq, key=lambda x: x[0])
+                        dist_k, d, p = pq[-1]
+            else:
+                for child in sorted(curr_node.children, key=lambda child: distance.euclidean(query_point, child.centroid)):
+                    dfs(child)
+        
+        dfs(node)
+        # print(i)
+        return [{'path': path} for _, path, _ in pq]
+        return pq
 
     
     # Guarda el árbol en un archivo
@@ -297,7 +332,7 @@ class SSTree:
             print("El árbol está vacío.")
 
 
-if __name__ == "__main__":
+def test_insert():
     ss = SSTree(M=6, m=2, filename='tree.ss')    # 
     print(mm, MM)
     data = [
@@ -360,3 +395,29 @@ if __name__ == "__main__":
     #     # print(f'>>>>> INSERT {d}')
     #     ss.insert(d, f"{i}.jpg")
     ss.print()
+
+def test_knn():
+    tree = SSTree(M=75, m=25, filename='tree.ss')
+    tree.print()
+    node_data = tree.root.get_data()
+    print(len(node_data))        # duplicates reduce the number of data
+    # for tup in node_data[:10]:
+    #     print(tup)
+
+    # get random point
+    node_random, path_random = node_data[np.random.randint(len(node_data))]
+    past_node = node_random
+    # add a little noise
+    node_random = node_random + np.random.normal(0, 0.00005, node_random.shape)
+    print(past_node, '->', node_random, path_random, distance.euclidean(past_node, node_random))
+    
+    for tup in tree.knn(node_random, 4):
+        try:
+            dist, path, point = tup
+            print(f'{round(dist, 8)}\t{path} -> {point}')
+        except:
+            print(tup)
+
+if __name__ == "__main__":
+    test_knn()
+    
