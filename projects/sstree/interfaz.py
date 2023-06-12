@@ -98,9 +98,11 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("SS-Tree")
     model = Encoder().to(device)
+    
     for param in model.parameters():
         param.requires_grad = False
-    
+    print('a')
     tree = SSTree(filename='tree.ss')
+    print('b')
     app = App(root, tree, model, device)
     root.mainloop()

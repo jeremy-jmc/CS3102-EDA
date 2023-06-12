@@ -44,3 +44,5 @@ input
 data/
 pretrained/
 __pycache__/
+*.ss
+SSTreeM.py

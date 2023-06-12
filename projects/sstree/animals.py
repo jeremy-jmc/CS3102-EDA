@@ -72,6 +72,7 @@ def insertData2SSTree(dataset, sstree, batch_size):
     eps = 1e-8
     net.eval()
     net.to(device)
+    i = 0
     for data, paths in tqdm(loader):
         data = data.to(device)
         embeddings = net(data)
@@ -79,6 +80,11 @@ def insertData2SSTree(dataset, sstree, batch_size):
         for embedding, path in zip(embeddings, paths):
             norm = np.linalg.norm(embedding)
             sstree.insert(embedding/(norm+eps), path)
+            i += 1
+        #     if i == 1000:
+        #         break
+        # if i == 1000:
+        #     break
 
 
 def main():
@@ -87,7 +93,7 @@ def main():
     gc.collect()
     torch.cuda.empty_cache()
     dataset = getDataset("../data/afhq")
-    tree = SSTree(M=100, m=50)
+    tree = SSTree(M=6, m=3)     # 100 50
     insertData2SSTree(dataset, tree, batch_size=200)
     tree.save("tree.ss")
 

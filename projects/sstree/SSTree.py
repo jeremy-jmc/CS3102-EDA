@@ -9,7 +9,7 @@ from joblib import dump, load
 
 mm = None
 MM = None
-
+np.set_printoptions(precision=3)
 class SSnode:
     # Inicializa un nodo de SS-Tree
     def __init__(self, leaf=False, points=None, children=None, data=None, parent=None):
@@ -20,41 +20,47 @@ class SSnode:
         self.children : List[SSnode]= children if children is not None else []
         self.data : List[str]       = data if data is not None else []
 
-        self.centroid : np.array    = np.mean([p for p in self.points], axis=0) if self.points else None
+        self.centroid : np.array    = np.mean([p for p in self.get_entries_centroids()], axis=0)
         self.radius : np.float64    = self.compute_radius()
 
     # Calcula el radio del nodo como la máxima distancia entre el centroide y los puntos contenidos en el nodo
     def compute_radius(self) -> np.float64:
         """recompute radius"""
-        print(inspect.currentframe().f_code.co_name)
-        if not self.points:
-            return 0.0
-
-        distances = []
-        if self.leaf:
+        # print(inspect.currentframe().f_code.co_name)
+        # print(f'\t{self.get_entries_centroids()}')
+        distances = [0.0]
+        if self.points:
+            # print(f'\tcase LEAF')
             distances = list(map(lambda p: distance.euclidean(self.centroid, p), self.points))
-        else:
+        if self.children:
+            # print(f'\tcase INTERNAL_NODE')
+            # print(f'\tmy_centroid: {self.centroid}')
+            # print(f'\tchildren_centroids: {[c.centroid for c in self.children]}')
             distances = list(map(lambda child: distance.euclidean(self.centroid, child.centroid) + child.radius, self.children))
         return max(distances)
 
     # Verifica si un punto dado está dentro del radio del nodo
     def intersects_point(self, point) -> bool:
         """check if point is inside the node's radius"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         return distance.euclidean(self.centroid, point) <= self.radius
 
     # Actualiza el envolvente delimitador del nodo recalculando el centroide y el radio
     def update_bounding_envelope(self) -> None:
         """update the bounding envelope of the node (update the k-dimensional sphere)"""
-        print(inspect.currentframe().f_code.co_name)
-        self.centroid = np.mean(self.get_entries_centroids(), axis=0)
+        # print(inspect.currentframe().f_code.co_name)
+        centroids = self.get_entries_centroids()
+        # print(f'\tcc:    {centroids}')
+        self.centroid = np.mean(centroids, axis=0)
+        # print(f'\tnew_c: {self.centroid}')
         self.radius = self.compute_radius()
+        # print(f'\tr:     {self.radius}')
 
     # Encuentra y devuelve el hijo más cercano al punto objetivo
     # Se usa para entrar el nodo correto para insertar un nuevo punto
     def find_closest_child(self, target):
         """find the closest child to the target point"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         if self.leaf:
             raise Exception("No se puede encontrar el hijo más cercano de un nodo hoja.")
         
@@ -72,32 +78,34 @@ class SSnode:
     # Divide el nodo en dos a lo largo del eje de máxima varianza
     def split(self):
         """split the node by the axis of maximum variance, minimizing the variance of the new nodes"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(f'\t{inspect.currentframe().f_code.co_name.upper()}')
         split_index = self.find_split_index()
         new_child_1 = None
         new_child_2 = None
 
         if self.leaf:
-            new_child_1 = SSnode(leaf=True, points=self.points[0:split_index], data=self.data, parent=self)
-            new_child_2 = SSnode(leaf=True, points=self.points[split_index:], data=self.data, parent=self)
+            new_child_1 = SSnode(leaf=True, points=self.points[0:split_index], data=self.data[0:split_index], parent=self)
+            new_child_2 = SSnode(leaf=True, points=self.points[split_index:], data=self.data[split_index:], parent=self)
         else:
             new_child_1 = SSnode(leaf=False, children=self.children[0:split_index], parent=self)
             new_child_2 = SSnode(leaf=False, children=self.children[split_index:], parent=self)
         
+        # print(f'\tnew_child_1: {new_child_1.centroid}, {new_child_1.radius}')
+        # print(f'\tnew_child_2: {new_child_2.centroid}, {new_child_2.radius}')
         return new_child_1, new_child_2
-
+    # ! asociar centroide a indice pq el sort lo mata
     # Encuentra el índice en el que dividir el nodo para minimizar la varianza total
-    def find_split_index(self):
+    def find_split_index(self) -> int:
         """find the index to split the node minimizing the total variance using the axis of the max variance"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         coordinate_index = self.direction_of_max_variance()
         sorted_points = sorted(self.get_entries_centroids(), key=lambda p: p[coordinate_index])
         return self.min_variance_split([p[coordinate_index] for p in sorted_points])
 
     # Encuentra la división que minimiza la varianza total
-    def min_variance_split(self, values):
+    def min_variance_split(self, values) -> int:
         """obtain the index that minimizes the total variance using brownie split"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         split_index = []
         for _ in range(mm, len(values) - mm + 1):     # [>=, <]
             sum_variances = np.var(values[:_]) + np.var(values[_:])
@@ -108,29 +116,30 @@ class SSnode:
     # Encuentra el eje a lo largo del cual los puntos tienen la máxima varianza
     def direction_of_max_variance(self) -> int:
         """find the axis in the k-dimensional space of the maximum variance"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         centroids = self.get_entries_centroids()
         variances = np.var(centroids, axis=0)
         idx_max = list(variances).index(max(variances))
-        print(f'variances: {variances} {idx_max}')
+        # print(f'variances: {variances} {idx_max}')
         return idx_max
 
 
     # Obtiene los centroides de las entradas del nodo
     def get_entries_centroids(self) -> List[np.array]:
         """utility function to get the centroids of the entries of the node"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         if self.leaf:
             return self.points
         else:
             return [child.centroid for child in self.children]
     
+
     # Inserta un punto en el árbol
-    def insert(self, point, data=None):
+    def insert(self, point, data=None) -> tuple:
         """inserts a point(with the data) in the tree"""
-        print(inspect.currentframe().f_code.co_name)
+        # print(inspect.currentframe().f_code.co_name)
         if self.leaf:
-            if point in self.points:
+            if np.any(self.points == point):
                 return (None, None)
             
             self.points.append(point)
@@ -147,12 +156,9 @@ class SSnode:
                 idx_to_remove = self.children.index(closest_child)
                 # remove by index
                 self.children.pop(idx_to_remove)
-                self.data.pop(idx_to_remove)
 
                 self.children.append(new_child_1)
                 self.children.append(new_child_2)
-                # new_child_1.parent = self
-                # new_child_2.parent = self
                 self.update_bounding_envelope()
 
                 if len(self.children) <= MM:
@@ -160,11 +166,11 @@ class SSnode:
             else:
                 self.update_bounding_envelope()
                 return (None, None)
-        
+        # self.update_bounding_envelope()
         return self.split()
                 
     def printNode(self, indent=0):
-        print('\t' * indent, f'Centroid: {self.centroid}, Radius: {round(self.radius, 5)}, Size: {len(self.points)}')
+        print('\t' * indent, f'Centroid: {self.centroid}, Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
         for child in self.children:
             child.printNode(indent + 2)
 
@@ -202,6 +208,7 @@ class SSTree:
         (new_child_1, new_child_2) = self.root.insert(point, data)
         if new_child_1 is not None and new_child_2 is not None:
             self.root = SSnode(leaf=False, children=[new_child_1, new_child_2])
+            # self.root.update_bounding_envelope()
 
     
     # Busca un punto en el árbol y devuelve el nodo que lo contiene si existe
@@ -250,7 +257,7 @@ class SSTree:
 
 
 if __name__ == "__main__":
-    ss = SSTree(M=6, m=2)    # , filename='tree.ss'
+    ss = SSTree(M=6, m=2, filename='tree.ss')    # 
     print(mm, MM)
     data = [
         [0.00438936,-0.00058534,0.00174215,0.00744667],
@@ -259,36 +266,56 @@ if __name__ == "__main__":
         [0.0009176,0.01680653,0.059632,0.00065029],
         [0.0008271,0.01525626,0.04283572,0.00923643],
         [0.00082534,-0.00039568,0.03403273,0.05716665],
-        [-4.7112128e-04,-1.0372750e-03,-6.1829771e-05,4.8588943e-03],
+        [-4.7112128e-04,-1.0372750e-03,-6.1829771e-05,4.8588943e-03],   # ! RIP
         [1.0265931e-02,1.4486914e-02,-8.5602907e-05,6.0707338e-02],
         [-0.00012903,-0.0006901,0.06522365,0.01314898],
         [-1.2266746e-07,1.8020669e-02,3.7103205e-04,1.3928285e-02],
         [0.0031052,0.00061674,0.13053824,-0.00056778],
         [0.00401464,-0.00185226,0.02589161,0.04717514],
-        # [0.00106182,0.00516865,0.00065834,0.00308969],        # ! RIP 
-        # [0.00024055,0.00868481,0.05629053,0.03818639],
-        # [1.0743942e-02,1.5491766e-02,8.5700529e-05,4.0598746e-02],
-        # [0.00401647,0.00077669,0.0169516,0.02113935],
-        # [-0.00070253,0.00170065,0.08050004,0.00734635],
-        # [0.00186555,-0.00151982,0.01879334,-0.00053854],
-        # [6.2120578e-04,-4.7482499e-05,3.1835414e-02,1.2831937e-02],
-        # [-0.0001491,0.0014499,0.04094484,0.00204615],
-        # [0.0064459,0.00222402,0.00206173,0.00210225],
-        # [0.00898901,0.07667418,0.01548219,0.03554268],
-        # [-1.5523539e-06,2.1837330e-04,2.6588362e-02,1.1840663e-02],
-        # [-0.00013785,-0.00078426,0.00273037,0.00276369],
-        # [0.01597049,0.04521541,0.00568947,0.00091762],
-        # [0.00363583,0.00624786,0.02112816,0.02711718],
-        # [0.00104465,0.01759246,0.08661902,0.06389884],
-        # [0.00248643,0.00131474,0.05095134,0.05728835],
-        # [-0.00050873,-0.00048188,0.01878684,0.00066375],
-        # [-0.00039781,0.00099844,0.00364636,0.02317777],
-        # [0.00122425,-0.00046588,0.02636435,0.01408367],
-        # [0.00338644,0.00031897,0.01394583,0.06442267],
-        # [0.00075682,0.00140428,0.05191123,0.0923482,],
-        # [0.00047388,0.03364422,0.00252659,0.00224054]
+        [0.00106182,0.00516865,0.00065834,0.00308969],        # ! RIP 
+        [0.00024055,0.00868481,0.05629053,0.03818639],
+        [1.0743942e-02,1.5491766e-02,8.5700529e-05,4.0598746e-02],
+        [0.00401647,0.00077669,0.0169516,0.02113935],
+        [-0.00070253,0.00170065,0.08050004,0.00734635],
+        [0.00186555,-0.00151982,0.01879334,-0.00053854],
+        [6.2120578e-04,-4.7482499e-05,3.1835414e-02,1.2831937e-02],
+        [-0.0001491,0.0014499,0.04094484,0.00204615],
+        [0.0064459,0.00222402,0.00206173,0.00210225],
+        [0.00898901,0.07667418,0.01548219,0.03554268],
+        [-1.5523539e-06,2.1837330e-04,2.6588362e-02,1.1840663e-02],
+        [-0.00013785,-0.00078426,0.00273037,0.00276369],
+        [0.01597049,0.04521541,0.00568947,0.00091762],
+        [0.00363583,0.00624786,0.02112816,0.02711718],
+        [0.00104465,0.01759246,0.08661902,0.06389884],
+        [0.00248643,0.00131474,0.05095134,0.05728835],
+        [-0.00050873,-0.00048188,0.01878684,0.00066375],
+        [-0.00039781,0.00099844,0.00364636,0.02317777],
+        [0.00122425,-0.00046588,0.02636435,0.01408367],
+        [0.00338644,0.00031897,0.01394583,0.06442267],
+        [0.00075682,0.00140428,0.05191123,0.0923482,],
+        [0.00047388,0.03364422,0.00252659,0.00224054],
+        [-0.0003847, 0.00126035, 0.02567481, 0.00287693],
+        [0.00156782, 0.00498047, 0.01236711, 0.00198764],
+        [0.00271436, -0.00075213, 0.00622345, 0.00784567],
+        [0.00087215, 0.01045723, 0.00582916, 0.02036758],
+        [0.00192349, 0.00058964, 0.00426783, 0.01245679],
+        [0.00314856, 0.00123891, 0.01006754, 0.01346378],
+        [-0.00053824, 0.00076432, 0.00357342, 0.00124567],
+        [0.00267513, 0.00347891, 0.00589235, 0.00274321],
+        [0.00127854, 0.00089753, 0.00857234, 0.00592674],
+        [0.00078456, 0.00493657, 0.01254878, 0.00134523],
+        [-0.00027964, 0.00146723, 0.00927156, 0.00087891],
+        [0.00295871, 0.00146924, 0.00645783, 0.00724563],
+        [0.00157346, 0.00074896, 0.00792356, 0.00543912],
+        [0.00178956, 0.00093875, 0.00624897, 0.00836452],
+        [0.00054834, 0.00296314, 0.00792364, 0.00125347],
+        [0.00123982, 0.00124765, 0.00584792, 0.00654236],
+        [0.00145372, 0.00098632, 0.00456913, 0.00734125],
+        [0.00235671, 0.00124532, 0.00582713, 0.00974523],
+        [0.00239111, -0.00089024, 0.00486237, 0.00921345],
     ]
-    print(f'data points: {len(data)}')
-    for i, d in enumerate(data):
-        ss.insert(d, f"{i}.jpg")
+    # print(f'data points: {len(data)}')
+    # for i, d in enumerate(data):
+    #     # print(f'>>>>> INSERT {d}')
+    #     ss.insert(d, f"{i}.jpg")
     ss.print()
