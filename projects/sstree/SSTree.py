@@ -166,8 +166,8 @@ class SSnode:
         # print(inspect.currentframe().f_code.co_name)
         
         if self.leaf:
-            # if np.any(self.points == point):
-            #     return (None, None)
+            if np.any(self.points == point):
+                return (None, None)
             
             self.points.append(point)
             self.data.append(data)
