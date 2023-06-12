@@ -55,7 +55,7 @@ class App:
 
     def search_similar(self):
         embedding = self.get_image_embedding(self.input_path.get(), self.model)
-        result = self.tree.knn(embedding, 4)
+        result : dict = self.tree.knn(embedding, 4)
         print(result)
         for i, res in enumerate(result):
             image = Image.open(res['path'])

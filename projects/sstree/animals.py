@@ -64,6 +64,7 @@ def getDataset(rootFolder):
 
 
 def insertData2SSTree(dataset, sstree, batch_size):
+    print(f'len dataset: {len(dataset)}')
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
     net = Encoder()
     for param in net.parameters():
@@ -81,10 +82,10 @@ def insertData2SSTree(dataset, sstree, batch_size):
             norm = np.linalg.norm(embedding)
             sstree.insert(embedding/(norm+eps), path)
             i += 1
-        #     if i == 1000:
-        #         break
-        # if i == 1000:
-        #     break
+            if i == 1000:
+                break
+        if i == 1000:
+            break
 
 
 def main():
@@ -93,7 +94,7 @@ def main():
     gc.collect()
     torch.cuda.empty_cache()
     dataset = getDataset("../data/afhq")
-    tree = SSTree(M=6, m=3)     # 100 50
+    tree = SSTree(M=75, m=25)     # 6 3     M >= 2m
     insertData2SSTree(dataset, tree, batch_size=200)
     tree.save("tree.ss")
 

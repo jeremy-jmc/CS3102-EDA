@@ -3,6 +3,7 @@ import numpy as np
 from scipy.spatial import distance
 import pickle
 import os
+import sys
 from typing import List
 from queue import PriorityQueue
 from joblib import dump, load
@@ -10,6 +11,8 @@ from joblib import dump, load
 mm = None
 MM = None
 np.set_printoptions(precision=3)
+
+
 class SSnode:
     # Inicializa un nodo de SS-Tree
     def __init__(self, leaf=False, points=None, children=None, data=None, parent=None):
@@ -22,6 +25,7 @@ class SSnode:
 
         self.centroid : np.array    = np.mean([p for p in self.get_entries_centroids()], axis=0)
         self.radius : np.float64    = self.compute_radius()
+
 
     # Calcula el radio del nodo como la máxima distancia entre el centroide y los puntos contenidos en el nodo
     def compute_radius(self) -> np.float64:
@@ -39,6 +43,7 @@ class SSnode:
             distances = list(map(lambda child: distance.euclidean(self.centroid, child.centroid) + child.radius, self.children))
         return max(distances)
 
+
     # Verifica si un punto dado está dentro del radio del nodo
     def intersects_point(self, point) -> bool:
         """check if point is inside the node's radius"""
@@ -55,6 +60,7 @@ class SSnode:
         # print(f'\tnew_c: {self.centroid}')
         self.radius = self.compute_radius()
         # print(f'\tr:     {self.radius}')
+
 
     # Encuentra y devuelve el hijo más cercano al punto objetivo
     # Se usa para entrar el nodo correto para insertar un nuevo punto
@@ -75,42 +81,58 @@ class SSnode:
         
         return closest_child
 
+
     # Divide el nodo en dos a lo largo del eje de máxima varianza
     def split(self):
         """split the node by the axis of maximum variance, minimizing the variance of the new nodes"""
         # print(f'\t{inspect.currentframe().f_code.co_name.upper()}')
-        split_index = self.find_split_index()
+        index_l, index_r = self.find_split_indexes()
         new_child_1 = None
         new_child_2 = None
 
         if self.leaf:
-            new_child_1 = SSnode(leaf=True, points=self.points[0:split_index], data=self.data[0:split_index], parent=self)
-            new_child_2 = SSnode(leaf=True, points=self.points[split_index:], data=self.data[split_index:], parent=self)
+            points_l = [self.points[_] for _ in index_l]
+            points_r = [self.points[_] for _ in index_r]
+            data_l = [self.data[_] for _ in index_l]
+            data_r = [self.data[_] for _ in index_r]
+
+            new_child_1 = SSnode(leaf=True, points=points_l, data=data_l, parent=self)
+            new_child_2 = SSnode(leaf=True, points=points_r, data=data_r, parent=self)
         else:
-            new_child_1 = SSnode(leaf=False, children=self.children[0:split_index], parent=self)
-            new_child_2 = SSnode(leaf=False, children=self.children[split_index:], parent=self)
+            children_l = [self.children[_] for _ in index_l]
+            children_r = [self.children[_] for _ in index_r]
+
+            new_child_1 = SSnode(leaf=False, children=children_l, parent=self)
+            new_child_2 = SSnode(leaf=False, children=children_r, parent=self)
         
         # print(f'\tnew_child_1: {new_child_1.centroid}, {new_child_1.radius}')
         # print(f'\tnew_child_2: {new_child_2.centroid}, {new_child_2.radius}')
         return new_child_1, new_child_2
+    
+
     # ! asociar centroide a indice pq el sort lo mata
     # Encuentra el índice en el que dividir el nodo para minimizar la varianza total
-    def find_split_index(self) -> int:
+    def find_split_indexes(self) -> int:
         """find the index to split the node minimizing the total variance using the axis of the max variance"""
         # print(inspect.currentframe().f_code.co_name)
         coordinate_index = self.direction_of_max_variance()
-        sorted_points = sorted(self.get_entries_centroids(), key=lambda p: p[coordinate_index])
-        return self.min_variance_split([p[coordinate_index] for p in sorted_points])
+        elements = [(idx, v) for idx, v in enumerate(self.get_entries_centroids())]
+        sorted_points = sorted(elements, key=lambda p: p[1][coordinate_index])
+        return self.min_variance_split([(idx, p[coordinate_index]) for idx, p in sorted_points])
+
 
     # Encuentra la división que minimiza la varianza total
-    def min_variance_split(self, values) -> int:
-        """obtain the index that minimizes the total variance using brownie split"""
+    def min_variance_split(self, idx_values) -> tuple:
+        """obtain the groups indexes that minimizes the total variance using brownie split"""
         # print(inspect.currentframe().f_code.co_name)
         split_index = []
+        idxs = [idx for idx, _ in idx_values]
+        values = [v for _, v in idx_values]
         for _ in range(mm, len(values) - mm + 1):     # [>=, <]
             sum_variances = np.var(values[:_]) + np.var(values[_:])
             split_index.append((_, sum_variances))
-        return min(split_index, key=lambda x: x[1])[0]
+        cut_point = min(split_index, key=lambda x: x[1])[0]
+        return idxs[:cut_point], idxs[cut_point:]
 
 
     # Encuentra el eje a lo largo del cual los puntos tienen la máxima varianza
@@ -168,9 +190,28 @@ class SSnode:
                 return (None, None)
         # self.update_bounding_envelope()
         return self.split()
-                
+
+
+    def nearest_neighbor(self, target, nn_dist=sys.maxsize, nn=None):
+        """find the nearest neighbors of the target point"""
+        # print(inspect.currentframe().f_code.co_name)
+        if self.leaf:
+            for point in self.nodes:
+                dist = distance.euclidean(target, point)
+                if dist < nn_dist:
+                    nn_dist = dist
+                    nn = point
+        else:
+            sorted_children = sorted(self.children, key=lambda child: distance.euclidean(target, child.centroid))
+            for child in sorted_children:
+                if distance.euclidean(target, child.centroid) < nn_dist:
+                    nn_dist, nn = child.nearest_neighbor(target, nn_dist, nn)
+        return nn_dist, nn
+
+
     def printNode(self, indent=0):
-        print('\t' * indent, f'Centroid: {self.centroid}, Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
+        # print('\t' * indent, f'Centroid: {self.centroid}, Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
+        print('\t' * indent, f'Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
         for child in self.children:
             child.printNode(indent + 2)
 
