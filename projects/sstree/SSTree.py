@@ -26,7 +26,8 @@ class SSnode:
 
         self.centroid : np.array    = np.mean([p for p in self.get_entries_centroids()], axis=0)
         self.radius : np.float64    = self.compute_radius()
-
+        # self.r_pmax : np.float64    = 0.0
+        self.r_pmin : np.float64    = sys.maxsize
 
     # Calcula el radio del nodo como la máxima distancia entre el centroide y los puntos contenidos en el nodo
     def compute_radius(self) -> np.float64:
@@ -51,8 +52,9 @@ class SSnode:
         # print(inspect.currentframe().f_code.co_name)
         return distance.euclidean(self.centroid, point) <= self.radius
 
+
     # Actualiza el envolvente delimitador del nodo recalculando el centroide y el radio
-    def update_bounding_envelope(self) -> None:
+    def update_bounding_envelope(self, point = None) -> None:
         """update the bounding envelope of the node (update the k-dimensional sphere)"""
         # print(inspect.currentframe().f_code.co_name)
         centroids = self.get_entries_centroids()
@@ -61,7 +63,8 @@ class SSnode:
         # print(f'\tnew_c: {self.centroid}')
         self.radius = self.compute_radius()
         # print(f'\tr:     {self.radius}')
-
+        if point is not None:
+            self.r_pmin = min(self.r_pmin, distance.euclidean(point, self.centroid)) 
 
     # Encuentra y devuelve el hijo más cercano al punto objetivo
     # Se usa para entrar el nodo correto para insertar un nuevo punto
@@ -161,6 +164,7 @@ class SSnode:
     def insert(self, point, data=None) -> tuple:
         """inserts a point(with the data) in the tree"""
         # print(inspect.currentframe().f_code.co_name)
+        
         if self.leaf:
             # if np.any(self.points == point):
             #     return (None, None)
@@ -168,13 +172,14 @@ class SSnode:
             self.points.append(point)
             self.data.append(data)
             
-            self.update_bounding_envelope()
+            self.update_bounding_envelope(point)
 
             if len(self.points) <= MM:
                 return (None, None)
         else:
             closest_child = self.find_closest_child(point)
             (new_child_1, new_child_2) = closest_child.insert(point, data)
+            
             if new_child_1 is not None and new_child_2 is not None:
                 idx_to_remove = self.children.index(closest_child)
                 # remove by index
@@ -182,12 +187,15 @@ class SSnode:
 
                 self.children.append(new_child_1)
                 self.children.append(new_child_2)
-                self.update_bounding_envelope()
 
+                new_child_1.update_bounding_envelope(point)
+                new_child_2.update_bounding_envelope(point)
+                self.update_bounding_envelope(point)
+                
                 if len(self.children) <= MM:
                     return (None, None)
             else:
-                self.update_bounding_envelope()
+                self.update_bounding_envelope(point)
                 return (None, None)
         # self.update_bounding_envelope()
         return self.split()
@@ -209,6 +217,7 @@ class SSnode:
                     nn_dist, nn = child.nearest_neighbor(target, nn_dist, nn)
         return nn_dist, nn
 
+
     def get_data(self):
         if self.leaf:
             return list(zip(self.points, self.data))
@@ -218,9 +227,10 @@ class SSnode:
                 data += child.get_data()
             return data
     
+
     def printNode(self, indent=0):
         # print('\t' * indent, f'Centroid: {self.centroid}, Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
-        print('\t' * indent, f'Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}')
+        print('\t' * indent, f'Radius: {round(self.radius, 4)}, Points: {len(self.points)}, Children: {len(self.children)}, Leaf: {self.leaf}, R_pmin: {round(self.r_pmin, 4)}')     # 
         for child in self.children:
             child.printNode(indent + 2)
 
@@ -293,23 +303,44 @@ class SSTree:
             nonlocal dist_k, pq, query_point, k, i
             if curr_node.leaf:
                 for point, data in zip(curr_node.points, curr_node.data):
+                    d_qm = distance.euclidean(query_point, curr_node.centroid)
+                    d_om = distance.euclidean(point, curr_node.centroid)
+
+                    if d_qm - d_om > dist_k or d_om - d_qm > dist_k:
+                        continue    # prunning rule 2 and 4
                     i += 1
-                    dist = distance.euclidean(point, query_point)
-                    if dist < dist_k or len(pq) < k:
+                    d_qo = distance.euclidean(point, query_point)
+                    if d_qo < dist_k or len(pq) < k:
                         if len(pq) == k:
                             pq = pq[:-1]
                         # heapq.heappush(pq, (dist, data, point))
-                        pq.append((dist, data, point))
+                        pq.append((d_qo, data, point))
                         pq = sorted(pq, key=lambda x: x[0])
+                    if len(pq):
                         dist_k, d, p = pq[-1]
             else:
-                for child in sorted(curr_node.children, key=lambda child: distance.euclidean(query_point, child.centroid)):
+                if k == 1:
+                    for child in curr_node.children:
+                        # prunning rule 5
+                        d_q_mp = distance.euclidean(query_point, child.centroid)
+                        if d_q_mp > dist_k:
+                            continue
+                        elif d_q_mp + child.r_pmin < dist_k:
+                            dist_k = d_q_mp + child.r_pmin
+                
+                for child in curr_node.children:
+                    d_q_mp = distance.euclidean(query_point, child.centroid)
+                    if d_q_mp - child.radius > dist_k or child.r_pmin - d_q_mp > dist_k:
+                        continue    # prunning rule 1 and 3
                     dfs(child)
         
         dfs(node)
-        # print(i)
+        print(f'{i} nodos visitados')
+        for tup in pq:
+            dist, path, point = tup
+            print(f'{round(dist, 8)}\t{path} -> {point}')
+        
         return [{'path': path} for _, path, _ in pq]
-        return pq
 
     
     # Guarda el árbol en un archivo
@@ -333,7 +364,7 @@ class SSTree:
 
 
 def test_insert():
-    ss = SSTree(M=6, m=2, filename='tree.ss')    # 
+    ss = SSTree(M=6, m=2)    # , filename='tree.ss'
     print(mm, MM)
     data = [
         [0.00438936,-0.00058534,0.00174215,0.00744667],
@@ -390,15 +421,17 @@ def test_insert():
         [0.00235671, 0.00124532, 0.00582713, 0.00974523],
         [0.00239111, -0.00089024, 0.00486237, 0.00921345],
     ]
-    # print(f'data points: {len(data)}')
-    # for i, d in enumerate(data):
-    #     # print(f'>>>>> INSERT {d}')
-    #     ss.insert(d, f"{i}.jpg")
+    print(f'data points: {len(data)}')
+    for i, d in enumerate(data):
+        # print(f'>>>>> INSERT {d}')
+        ss.insert(d, f"{i}.jpg")
     ss.print()
+
 
 def test_knn():
     tree = SSTree(M=75, m=25, filename='tree.ss')
     tree.print()
+    # return
     node_data = tree.root.get_data()
     print(len(node_data))        # duplicates reduce the number of data
     # for tup in node_data[:10]:
@@ -408,7 +441,7 @@ def test_knn():
     node_random, path_random = node_data[np.random.randint(len(node_data))]
     past_node = node_random
     # add a little noise
-    node_random = node_random + np.random.normal(0, 0.00005, node_random.shape)
+    # node_random = node_random + np.random.normal(0, 0.00005, node_random.shape)
     print(past_node, '->', node_random, path_random, distance.euclidean(past_node, node_random))
     
     for tup in tree.knn(node_random, 4):
@@ -419,5 +452,6 @@ def test_knn():
             print(tup)
 
 if __name__ == "__main__":
+    # test_insert()
     test_knn()
     

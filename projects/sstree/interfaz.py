@@ -84,7 +84,7 @@ class App:
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),        # ? why this values
         ])
         image = preprocess(image).unsqueeze(0).to(self.device)
         model.eval()
@@ -92,7 +92,7 @@ class App:
             output = model(image)
         embedding = output.cpu().numpy()[0]
         norm = np.linalg.norm(embedding)
-        return embedding/(norm+np.finfo(np.float32).eps)
+        return embedding/(norm + np.finfo(np.float32).eps)
 
 
 if __name__ == "__main__":
