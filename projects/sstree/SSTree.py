@@ -316,6 +316,7 @@ class SSTree:
                         # heapq.heappush(pq, (dist, data, point))
                         pq.append((d_qo, data, point))
                         pq = sorted(pq, key=lambda x: x[0])
+                        print([round(d, 5) for d, _, _ in pq])
                     if len(pq):
                         dist_k, d, p = pq[-1]
             else:

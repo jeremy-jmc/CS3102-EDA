@@ -732,4 +732,28 @@ Edge
 PM1
 PM2
 PM3
-PMR
+
+
+
+SSTree
+XTree
+SS+Tree
+TV-Tree (telescoping vector)
+	alta dimensionalidad
+	PCA
+		eliminar features de menor varianza, activar y desactivar features
+		desactivar features para calcular las distancias
+
+		usan minkowski
+SR-Tree
+	construccion de arbol a partir de spheres y rectangulos
+	rectangulo circunscrito por esferas
+OS-Tree
+	overlapped split tree
+	Voronoi es un K-Means
+
+Probably correct OS-Tree (aproximacion de OSTree)
+	puntos de datos(S)
+	puntos de entrenamiento(T)
+
+truquito de centrar los datos (truco estadistico)
