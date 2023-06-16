@@ -751,9 +751,65 @@ SR-Tree
 OS-Tree
 	overlapped split tree
 	Voronoi es un K-Means
+	ubicacion de los puntos respecto a un hiperplano
+	definir hiperplano a traves de un vector
+
+		w.x + b = 0
+		w.x = b
 
 Probably correct OS-Tree (aproximacion de OSTree)
 	puntos de datos(S)
 	puntos de entrenamiento(T)
 
+	encontrar el eje de mejor division con PCA
+		encontrar el hiperplano particionador del eje con SVM
+	
+
 truquito de centrar los datos (truco estadistico)
+
+
+WSPD(Well-Separated Pair Decomposition)
+	factor de separacion (alfa * max(r1, r2))
+
+	Fair split Tree 
+		- KDTree conveniente
+		- cortar por el lado mas grande del MBB
+		- examinar los hijos para ver si los grupos son pares bien separados
+		- bajar por el lado que tenga el radio maximo
+
+
+Bucket PMR
+	en cada caja se permite una cierta cantidad de puntos
+
+Distance-Based Indexing Methods
+	problema de variables categoricas
+		ACTGACTGACTG
+
+		cada objeto es una entidad (A) y se puede calcular una distancia con respecto a otra entidad(G)
+		Levenshtein
+
+		ball partition
+		generalized hyperplane partition
+
+		usar pivotes
+
+
+		espacios metricos no de numeros -> espacio de funciones, espacio de matrices
+		demostracion del lema1, lema2
+			reglas de poda
+
+		M-Tree pivot
+			[p, r, d(p, p'), T]
+
+			p: pivote (elemento arbitrario)
+			r: radio
+			d(p, p'): distancia hacia el centro del padre
+			T: [p1, ..., pn]
+
+		Omni-family
+			R^N
+			Omni-foci
+				focos
+			Omni-coordinate
+
+
