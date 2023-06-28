@@ -1,0 +1,11 @@
+
+
+kNN
+    branch and bound technique
+PR -> priority queue
+NN -> k elements array
+
+
+ChooseNode
+    extract from PR the next node to be examined
+pruning criterion

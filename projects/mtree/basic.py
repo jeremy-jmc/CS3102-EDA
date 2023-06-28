@@ -34,10 +34,10 @@ def main(n_points, max_size):
     tree.print()
 
     # # Realizar una consulta de rango
-    # query_point = (50, 50)
-    # radius = 10
-    # results = tree.range_query(query_point, radius)
-    # print(f"Points within {radius} of {query_point}: {results}")
+    query_point = (50, 50)
+    radius = 10
+    results = tree.range_query(query_point, radius)
+    print(f"Points within {radius} of {query_point}: {results}")
 
     # # Realizar una consulta de los K vecinos más cercanos
     # k = 5
@@ -50,7 +50,7 @@ def main(n_points, max_size):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate M-tree with n random points.')
-    parser.add_argument('--n_points', type=int, default=500, help='Number of points to generate')
+    parser.add_argument('--n_points', type=int, default=1000, help='Number of points to generate')
     parser.add_argument('--max_size', type=int, default=  20, help='Maximum size of a node')
 
     args = parser.parse_args()
