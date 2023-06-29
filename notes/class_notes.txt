@@ -813,3 +813,113 @@ Distance-Based Indexing Methods
 			Omni-coordinate
 
 
+=========================================================================================
+
+Maldicion de la dimensionalidad
+	Combinatorial explosion
+	Muestreo
+	Hughes Phenomenon
+	PCA
+	Ratio entre esferas
+
+Espacio metrico
+	Simetria
+	Identidad
+	Desigualdad triangular
+	No negatividad
+
+Distancia
+	Hamming
+	Levenshtein
+	Minkowski
+	Manhattan
+	Euclidiana
+	Chebyshev
+
+Espacio metrico
+	Metodos de acceso metrico
+		Similitud coseno
+		Sorensen-Dice coefficient
+		Distancia Jaccard
+		Distancia Haversine
+		KL-Divergence
+		Wasserstein distance
+
+	Spatial join query
+	Particionamiento
+
+
+	Depth-First KNN
+		Pruning
+
+	SS-Tree
+		RTree de circulos
+		Split
+			Varianza maxima
+			Varianza minima
+	SS+Tree
+		Split types
+			Direccion de maxima varianza
+			KMeans
+	X-Tree
+		combate el overlapping del R* Tree
+		supernodos (pude ser yo)
+
+	TV-Tree
+		setear un eje y sobre eso hacer las divisiones
+		distancia minkowski
+			circulo
+			rombo
+			lineas
+	SR-Tree
+		rectangulos inscritos en esferas
+
+	OS-Tree
+		hiperplano de particion (SVM)
+		regiones de voronoi (la galletita)
+	Probably correct OSTree
+		Puntos de datos (S)
+
+		Puntos de entrenamiento (T)
+			se voronoean esos puntos
+			ose hace kmeans
+
+		plano ortogonal a la direccion de la mayor variacion de los datos
+		minimizar el grado en que las regiones de voronoi se superponen al lado contrario
+
+		PCA
+		SVM
+
+		Separating Hyperplane over the Principal component
+
+	OS-Tree
+	AVD
+	Distance-Based Indexing Methods
+	SVM
+
+	Aproximate Voronoi Diagram (AVD)
+		e-nearest neighbor (e-NN)
+
+	WSPD
+		Fair split tree (conveniete KD-Tree)
+
+	Approximate Voronoi Diagram
+	Distance-Based Indexing Methods
+	M-Tree
+		(t, e)-Approximate Voronoi Diagram
+
+	Omni-family (mbOr)
+		Omni-foci base
+		Omni-coordinate
+
+		r1 < x < r2
+		r3 < y < r4
+
+		Hull of Foci (HF)
+			min SUM | d(f1, f2) - d(fk, si) |
+			 si  k
+
+		Omni-Sequential
+
+		
+				
