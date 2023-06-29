@@ -214,7 +214,9 @@ class MTree:
         if not node:
             node = self.root
         result = []
-        self._range_search(node, query, radio, result)
+        for child in node.children:
+            self._range_search(child, query, radio, result)
+        
         return result
 
     def _range_search(self, node: MNode, query: list, radio: float, result: list) -> None:
@@ -225,51 +227,37 @@ class MTree:
         """
         if not node.is_leaf:
             for child in node.children:
-                if abs(D(node.pivot, query) - D(child.pivot, node.pivot)) <= radio + child.radius:
+                if abs(D(node.parent.pivot, query) - D(child.pivot, node.parent.pivot)) <= radio + child.radius:
                     if D(child.pivot, query) <= radio + child.radius:
                         self._range_search(child, query, radio, result)
         else:
             for child in node.children:
-                if abs(D(node.pivot, query) - D(child, node.pivot)) <= radio:
+                if abs(D(node.parent.pivot, query) - D(child, node.parent.pivot)) <= radio:
                     if D(child, query) <= radio:
                         result.append(child)
 
     def kNN(self, query: list, k: int) -> list:
-        if not node:
-            node = self.root
-        pq = [(node, D(node.pivot, query))]
-        NN = [(None, float('inf'))] * k
-
-        while pq:
-            next_node = choose_node(pq, query)
-            self.kNN_node_search(next_node, query, k, NN, pq)
-        return NN
-    
-    def NN_update(self, NN: list):
-        NN = sorted(NN, key=lambda x: x[1])
-        tup_k = None
-        for tup in NN:
-            if tup[0] is None:
-                break
-            tup_k = tup
-        d_k = tup_k[1]
-        return d_k
-
-    def kNN_node_search(self, node: MNode, query: tuple, k: int, NN: list, pq: list) -> None:
-        d_k = self.NN_update(NN)
-
-        o_p = node.pivot
-        if not node.is_leaf:
-            for child in node.children:
-                pass
-        else:
-            for o_j in node.children:
-                if abs(D(o_p, query) - D(o_j, o_p)) <= d_k:
-                    d_oj_q = D(o_j, query)
-                    if d_oj_q  <= d_k:
-                        NN.append((o_j, d_oj_q))
-                        d_k = self.NN_update(NN)
-                        pq = [tup for tup in pq if tup[1] <= d_k]
+        result = [(float('inf'), "") for i in range(k)]
+        def dfs(node: MNode, q: list):
+            nonlocal result, k 
+            if node.is_leaf: 
+                for child in node.children: 
+                    if abs(D(node.parent.pivot, query) - D(child, node.parent.pivot)) <= result[k-1][0] :
+                        dist_query = D(child, query)
+                        if dist_query < result[k-1][0]:
+                            for _ in range(len(result)): 
+                                if result[_][0] > dist_query: 
+                                    result[_] = (dist_query, child)
+                                    break
+            else:                 
+                for subnode in node.children: 
+                    if abs(D(node.parent.pivot, query) - D(subnode.pivot, node.parent.pivot)) <= result[k-1][0] + subnode.radius:
+                        if D(subnode.pivot, query) < result[k-1][0]:
+                            dfs(subnode, q)
+        
+        for subnode in self.root.children:
+            dfs(subnode, query)
+        return  result
 
     # =========================================================================
 

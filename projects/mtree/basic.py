@@ -40,9 +40,9 @@ def main(n_points, max_size):
     print(f"Points within {radius} of {query_point}: {results}")
 
     # # Realizar una consulta de los K vecinos más cercanos
-    # k = 5
-    # results = tree.kNN(query_point, k)
-    # print(f"The {k} nearest neighbors to {query_point}: {results}")
+    k = 5
+    results = tree.kNN(query_point, k)
+    print(f"The {k} nearest neighbors to {query_point}: {results}")
     
     # Verifica el árbol
     print(f"Tree check result: {tree.checkTree()}")
