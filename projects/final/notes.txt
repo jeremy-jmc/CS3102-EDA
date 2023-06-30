@@ -1,0 +1,56 @@
+AUTOMATING NEAREST NEIGHBOR SEARCH CONFIGURATION WITH CONSTRAINED OPTIMIZATION
+
+
+INTRODUCTION
+
+    ANN search problem
+    speed-recall tradeoff
+    speed-recall Pareto Frontier
+    vector search
+    tuning methods
+        grid search
+        manual tuning
+        black-box optimizer
+    3 pilars
+        computational cost
+        human involvement
+        hyperparameter quality
+
+    constrained optimization-based approach to tuning quantization-based ANN algorithms
+    efficient lagrange multipliers-based technique for optimizing either of these metrics with respect to the other
+
+RELATED WORKS
+    ANN algorithms
+        Hashing approaches
+            LSH
+        Graph approaches
+            parameters: vertex distribution, graph diameter
+        Quantization approaches
+            VQ (vector quantization)
+            parameters: codebook size, # of codebooks
+
+    ANN hyperparameter tunning
+        low dimensional space is tuning with grid search
+        heuristics to reduce the search space into one tractable with grid search
+
+PRELIMINARIES
+    Large-Scale Online ANNs
+        2 axes: accuracy, search cost
+    VECTOR QUANTIZATION
+    PRODUCT QUANTIZATION
+
+
+REFERENCES
+    https://en.wikipedia.org/wiki/Vector_quantization
+    https://saturncloud.io/glossary/vector-quantization/
+    https://scikit-learn.org/stable/auto_examples/cluster/plot_face_compress.html
+
+    https://en.wikipedia.org/wiki/Indicator_function
+    https://math.stackexchange.com/questions/777127/what-does-this-symbol-mean-looks-like-a-1-with-double-vertical-line
+    https://en.wikipedia.org/wiki/Geometric_mean
+
+    https://www.analyticsvidhya.com/blog/2020/09/precision-recall-machine-learning/#Precision_and_Recall_Trade-off
+    https://www.collimator.ai/reference-guides/what-is-vector-quantization
+    
+    https://developers.google.com/machine-learning/crash-course/classification/precision-and-recall?hl=es-419
+
