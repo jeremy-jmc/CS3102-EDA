@@ -922,4 +922,130 @@ Espacio metrico
 		Omni-Sequential
 
 		
-				
+
+9.2
+	PM QuadTree
+		PM1
+			1 segmento por cuadradito
+			si hay mas de 1 checkear si es que terminan en el mismo punto
+		PM2
+			puede haber mas de 1 segmento por cuadradito si es que llegan al mismo punto
+		PM3
+			cuando un bloque contienen mas de 1 vertice
+10.1
+	Levenshtein
+		dp
+			tomar el valor de la diagonal superior derecha y sumar 1 si es que no son iguales
+			el de arriba y el de la izquierda le sumas 1 siempre
+			tomas el menor entre los 3
+	Hamming
+		contar no coincidencias
+11.0 11.1
+	SSTree
+		RTree de circulos
+	Overlap/WeightedOverlap
+12.1
+	Well-Separated Pair Decomposition (WSPD)
+		Construir el conveniente KDTree
+		
+		bajar por el circulo mas grande
+12.2
+	M-Tree
+		Mierda Tree
+	Hull of Foci
+		algoritmo
+
+
+
+PREGUNTAS TIPO EXAMEN
+
+
+
+
+diferencia entre la distancia de Levenshtein y Havversein
+	Levenshtein -> cantidad de insercion y borrado para llegar a la siguiente letra
+	Havversein -> diferencia de bits
+
+definicion de RNG
+	ecuacion
+	a partir de la definicion de lunas
+	a partir de la propiedad del paper
+
+definicion de e-NN
+	dist(q, v)	<= (1 + e) dist(q, v')
+
+como maneja el X-Tree la maldicion de dimensionalidad
+	supernodos (disminuir la cantidad de splits, aumentando el grado con el uso de supernodos)
+
+explique el split M-Tree
+	FFFF
+
+como se realiza la operacion de busqueda en un approximate Voronoi diagram
+	galletita
+	o quad-tree o OS-Tree
+
+que es omni-family
+	toma referencias
+	tomas un conjunto de focis y a partir de eso se generaba planos de coordenadas
+
+define el stress OVA 1
+	metrica para saber que tanto afecto la transformacion(el embedding) al espacio metrico
+
+define SVD
+	M = U Sigma V*
+
+define Line QuadTree
+
+define la similitud de coseno
+	cos(L)
+
+Como se expresa el problema Parseval (Fourier)
+
+
+Cual es la desventaja de usar PCA 
+
+Formula de Minkowski
+
+COmo se expresa el grafo de gabriel
+
+que es la maldicion de la dimensionalidad y como afecta la distribucion de los datos
+	complejidad logaritimica elevada a la K
+
+cual es la definicion/ecuacion de volumen de una hipersfera
+	c * pi * r^d
+		se define con combinatoria
+
+en el contexto de los embeddings, que significa q un embedding sea isometrico
+	al aplicar el embedding la distancia se mantiene de un espacio a otro
+
+cual es la ecuacion de KL divergence
+
+como se define un manifold 2d y 3d
+	2d-manifold -> localmente se comporta en un espacio 2d
+	3d-manifold -> localmente se comporta en un espacio 3d
+
+que es un half-edge
+
+que es un modelo de wastern-strauz
+	saltitos
+
+diferencia entre PM-QuadTree y PMR-QuadTree
+
+CSG vs BB representations
+	CSG -> usando operacinoes de union, interseccion y diferencia
+	BB -> caras, lineas
+
+como mejora el HNSW en rednimiento de consultas vs SW
+	vas de saltos largos a saltos finos
+
+que es el diagrama de Voronoi y como se puede aplicar para el procesamiento de imagenes
+	compresion de imagenes
+
+
+como maneja la maldicion de dimensionalidad el omni family
+	los focis representan la dimension
+
+
+	Lipschitz Embeddings
+		
+
