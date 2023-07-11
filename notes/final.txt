@@ -1,0 +1,299 @@
+
+PREGUNTAS TIPO EXAMEN
+
+    En que se relacion un diagrama de Voroni y la triangulacion de Delaunay
+        Uno es dual del otro (dual no isomorfo)
+        Se puede llegar de uno a otro
+
+    Que operaciones se usan en CSG
+        Union, Interseccion y Diferencia
+
+    Como se construye el diagrama de Voronoi, a partir de la triangulacion de Delaunay
+        A partir de las mediatrices
+        https://es.wikipedia.org/wiki/Triangulaci%C3%B3n_de_Delaunay
+
+    Como se aplica el diagrama de Voronoi en clasificacion de patrones
+        Puede funcionar como un K-Means
+
+    Cual es la propiedad de Voronoi
+        Lo de las circunferencias
+
+    Diferencia entre la distancia de Levenshtein y Havversein
+        Levenshtein -> cantidad de insercion y borrado para llegar a la siguiente letra (DP)
+        Havversein -> diferencia de bits
+
+    Definicion de RNG
+        ecuacion
+        a partir de la definicion de lunas
+        a partir de la propiedad del paper
+
+    Definicion de e-NN
+        dist(q, v)	<= (1 + e) dist(q, v')
+
+    Como maneja el X-Tree la maldicion de dimensionalidad
+        supernodos (disminuir la cantidad de splits, aumentando el grado con el uso de supernodos)
+
+    Explique el split M-Tree
+        FFFF
+
+    Como se realiza la operacion de busqueda en un approximate Voronoi diagram
+        galletita
+        o quad-tree o OS-Tree
+
+    Que es omni-family
+        toma referencias
+        tomas un conjunto de focis y a partir de eso se generaba planos de coordenadas
+
+    Define el stress OVA 1
+        metrica para saber que tanto afecto la transformacion(el embedding) al espacio metrico
+
+    Define SVD
+        M = U Sigma V*
+
+    Define Line QuadTree
+
+    Define la similitud de coseno
+        cos(L)
+
+    Como se expresa el problema Parseval (Fourier)
+
+    Cual es la desventaja de usar PCA 
+
+    Formula de Minkowski
+
+    Como se expresa el grafo de Gabriel
+
+    Que es la maldicion de la dimensionalidad y como afecta la distribucion de los datos
+        complejidad logaritimica elevada a la K
+
+    Cual es la definicion/ecuacion de volumen de una hipersfera
+        c * pi * r^d
+            se define con combinatoria
+
+    En el contexto de los embeddings, que significa q un embedding sea isometrico
+        al aplicar el embedding la distancia se mantiene de un espacio a otro
+
+    Cual es la ecuacion de KL divergence
+
+    Como se define un manifold 2d y 3d
+        2d-manifold -> localmente se comporta en un espacio 2d
+        3d-manifold -> localmente se comporta en un espacio 3d
+
+    Que es un half-edge
+
+    Que es un modelo de wastern-strauz
+        saltitos
+
+    Diferencia entre PM-QuadTree y PMR-QuadTree
+
+    CSG vs BB representations
+        CSG -> usando operacinoes de union, interseccion y diferencia
+        BB -> caras, lineas
+
+    Como mejora el HNSW en rednimiento de consultas vs SW
+        vas de saltos largos a saltos finos
+
+    Que es el diagrama de Voronoi y como se puede aplicar para el procesamiento de imagenes
+        compresion de imagenes
+
+    Como maneja la maldicion de dimensionalidad el omni family
+        los focis representan la dimension
+
+
+        Lipschitz Embeddings
+		
+PPTS: 
+
+    8.2
+        Boundary-Based representations
+            feature-query
+            location-query
+        CSG
+            A partir de solidos geometricos
+            Operaciones: union, interseccion, diferencia
+        Boundary Model (BRep)    
+            A partir de vertices, aristas, caras
+
+            Caras adyacentes: comparten arista
+            Caras conectadas: comparten un camino de caras que las conecta
+
+            Objetos: compactos, orientables, 2-manifold
+
+            Shell: conjunto maximo conectado de caras
+            Loop: cadena cerrada de aristas, que delimita una cara
+
+    9.0
+        Winged Edges
+        Half Edges
+        Voronoi Diagram
+
+    9.1
+        Voronoi Diagram
+            Fortune algorithm
+        Delaunay triangulation
+            Bowyer-Watson algorithm
+
+        https://es.wikipedia.org/wiki/Triangulaci%C3%B3n_de_Delaunay
+        https://cartography-playground.gitlab.io/playgrounds/triangulation-delaunay-voronoi-diagram/
+
+    9.2
+        Line QuadTree
+        MX QuadTree
+        Edge QuadTree
+        PM QuadTree
+            PM1
+            PM2
+            PM3
+        PMR QuadTree
+        Sector Tree
+
+    10.1
+        Maldicion de la dimensionalidad
+            combinatorial explosion
+            Hughes Phenomenon
+            reduccion de dimensionalidad
+
+            Generalizacion del volumen de una esfera
+                V_n = (pi^(n/2) R^n)/(n/2)!
+
+        Espacio metrico
+            M = (D, d)      d: M x M -> R
+
+            simetria        d(x, y) = d(y, x)
+            identidad       x = y <-> d(y, x) = 0
+            desigualdad triangular  d(x, z) <= d(x, y) + d(y, z)
+            no negatividad  d(x, y) >= 0
+        
+        Metodos de acceso metrico
+            https://towardsdatascience.com/9-distance-measures-in-data-science-918109d069fa
+
+            Hamming
+                # caracteres distintos
+            Levenshtein
+                DP on strings
+
+            Euclidean
+                D(X, Y) = ( \sum_{i=1}^{k} |x_i - y-i|^2 ) ^ (1/2)
+            Manhattan
+                \sum_{i=1}^{k} |x_i - y-i|
+            Minkowski
+                generalizacion de Manhattan y Euclidean
+                D(X, Y) = ( \sum_{i=1}^{k} |x_i - y-i|^p ) ^ (1/p)
+            Chebyshev
+                D(X, Y) = max_{i -> k}( |x_i - y-i| )
+            Cosine
+                D(X, Y) = cos(0) = (X . Y) / (||X|| ||Y||)
+            Sorensen-Dice
+                Dice = (2 |A \cap B|)/ (|A| + |B|)
+            Jaccard (IoU)
+                1 - ( |A \cap B| )/ ( |A \cup B| )
+            Haversine
+                distancia en el globo terraqueo (planeta Tierra)
+            KL Divergence
+                distancia entre 2 distribuciones gaussianas
+                DKL(P || Q) = \sum_{x \in X} P(x) log(P(x)/Q(x))
+
+            Wasserstein distance
+        
+    11.0
+        Depth-First KNN (DFS + Prunning)
+        SS-Tree
+            RTree de circulos
+            
+            Split operation
+
+    11.1
+        SS-Tree
+            "RTree de circulos"
+            Split operation
+            Delete operation
+        SS+-Tree
+            
+            Split along the direction of max variance
+            Split KMeans sobre muestreo
+        X-Trees
+            Overlaping de R* Tree aumenta con el # de dimensiones
+
+            Overlap
+                Regiones
+            Weighted Overlap
+                Puntos
+
+            Disminuir el split aumentando el grado de ciertos nodos, conocidos como supernodos
+
+    12.0
+        TV-Tree
+        SR-Tree
+
+    12.1
+        OS-Tree
+
+        Probably correct OS-Tree
+            PCA
+            SVM
+
+        AVD (Approximate Voronoi Diagram)    
+            e-NN
+                candidato a nn: o'
+                vecino mas cercano real: o
+
+                p es e-NN de q si:
+                    d(q, o') <= (1 + e) d(q, o)
+
+        WSPD
+            factor de separacion
+            convencion: 2 veces el radio minimo
+            Fair Split Tree
+
+    12.2
+        M-Tree
+        Omni-Family
+            mbOr
+
+            Omni-foci base
+
+        Hull of Foci (HF)
+
+    13.1
+        Lipschitz continuity
+        Proximity-Preserving Property
+        PCA
+        SVD
+        DFT
+        Teorema de Parseval
+
+    14.1
+        LSH
+        MinHashing
+    15.0
+        Small-World
+
+        NSW
+        HNSW
+
+    OVA1
+        Embedding Methods
+        Lipschitz Embeddings
+
+        FastMap
+
+    OVA2
+        SparseMap
+        t-SNE
+        UMap
+        Autoencoder
+
+    OVA3
+        Planar graph
+        Triplet
+            Coeficiente de agrupamiento local
+            C = numero de closed triplets / numero total posible de triplets
+        Clique
+        NN-Graph
+        MST
+            Kruskal
+            Prim
+        RNG
+            definicion
+        Gabriel Graph
+        Grafos aleatorios
