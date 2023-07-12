@@ -20,7 +20,7 @@ PREGUNTAS TIPO EXAMEN
 
     Diferencia entre la distancia de Levenshtein y Havversein
         Levenshtein -> cantidad de insercion y borrado para llegar a la siguiente letra (DP)
-        Havversein -> diferencia de bits
+        Hamming -> diferencia de bits
 
     Definicion de RNG
         ecuacion
@@ -98,6 +98,9 @@ PREGUNTAS TIPO EXAMEN
 
     Como maneja la maldicion de dimensionalidad el omni family
         los focis representan la dimension
+
+
+un 4d se puede aproximar a un 2d? de manifold
 
 
         Lipschitz Embeddings
@@ -273,15 +276,82 @@ PPTS:
 
     OVA1
         Embedding Methods
+            codificaciones mediante embeddings
+            embeddings: funciones que mapean entre 2 tipos de distribucion, manteniendo la info de un lado al otro
+
+            f: (O, d) -> (F, d')
+                se va de un dominio O a un dominio F
+                funcion inyectiva a cada valor del dominio le corresponde uno solo del rango
+                    inyectiva
+                    biyectiva   (correspondencia lateral)
+                    sobreyectiva
+                
+                r. d(a, b) <= d'(F(a), F(b)) <= D. r. d(a, b)
+                
+            D es lo que se conoce como distorsion
         Lipschitz Embeddings
+            d(a, b) \eq d'(F(a), F(b))          embeddings isometricos (santo grial)
+
+            d'/d es una relacion para todos los pares de puntos del espacio original y el espacio reducido
+            el maximo valor de esa division es lo que se conoce como la norma de Lipschitz
+
+            si es biyectivo es bi-Lipschitz
+
+            Stress
+                ( \sum_{o1, o2} [ d'(f(o1), f(o2)) - d(o1, o2) ]^2 ) / \sum_{o1, o2} d(o1, o2) ^2
+
+                MDS -> reducir el stress con IA
+            
+            varios puntos de referencia un embedding se define como el vector de distancias a los puntos de referencia
+
+                f(o) = ( d(o, A1), d(o, A2), ..., d(o, Ak) )
+
+                relacion de Lipschitz
+
+                    k 1/p
+                        p = 2 si es euclideana
 
         FastMap
+            1. Objetos extremos
+                a^2 = b^2 + c^2 - 2cm
+            2. Calcular proyeccion sobre los puntos extremos sobre la recta que une p1 y p2
+            3. Proyectar todos los puntos sobre un plan perpendicular
+                iterativo, algoritmo eficiente y Lipschitz y funciona bien en espacio euclideano
 
     OVA2
         SparseMap
+            el Lipschitz embedding es muy lento
+            preservar
         t-SNE
+            preservar cierto tipo de informacion
+            preservar la estructura de los mismo datos (las distribuciones)
+            usa la distribucion t-student
+
+            algorithmo iterativo
+
+                p_ij  = p(j | i) + p (i | j) / 2N
+                q_ji
+                que tan probable es que el j sea el vecino mas cercano de i
+
+            acordarse de Kullback Leiber Divergence
+            distribucion t-student o distribucion de Cauchy
+
+            minimizar la diferencia entre las distribuciones pij y qij con divergencia KL o Wasserstein
+
+            perplexity
+                se da mayor importancia a estructuras locales
+            Tiende a preservar las estructuras locales
         UMap
+            Uniform Manifold Approximation and Projection for Dimension Reduction
+            Modelar las conexiones de los puntos, presentar las estructuras de los datos
+
+            Binary cross-entropy
+            
+            Pelar al cocodrilo
         Autoencoder
+            VAE
+            Contrastive learning
+                Reinforcement learning
 
     OVA3
         Planar graph
